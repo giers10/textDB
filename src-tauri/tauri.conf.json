@@ -24,12 +24,26 @@
     ],
     "security": {
       "csp": null,
-      "capabilities": ["main"]
+      "capabilities": [
+        "main"
+      ]
     }
   },
   "plugins": {
     "sql": {
-      "preload": ["sqlite:text.db"]
+      "preload": [
+        "sqlite:text.db"
+      ]
     }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "app",
+      "dmg"
+    ],
+    "icon": [
+      "icons/icon.png"
+    ]
   }
 }
