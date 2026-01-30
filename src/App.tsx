@@ -95,7 +95,30 @@ export default function App() {
     return () => {
       if (unlisten) unlisten();
     };
-  }, [createTextFromFile]);
+  }, [handleFilePaths]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    listen<string[]>("file-opened", async (event) => {
+      await handleFilePaths(event.payload ?? []);
+    })
+      .then((cleanup) => {
+        unlisten = cleanup;
+      })
+      .catch((error) => {
+        console.error("Failed to register file-open listener", error);
+      });
+
+    invoke<string[]>("take_pending_opens")
+      .then((paths) => handleFilePaths(paths ?? []))
+      .catch((error) => {
+        console.error("Failed to load pending file opens", error);
+      });
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, [handleFilePaths]);
 
   useEffect(() => {
     bodyRef.current = body;
