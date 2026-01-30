@@ -291,14 +291,28 @@ export default function App() {
 
   const createTextFromFile = useCallback(
     async (filePath: string) => {
-      const filename = filePath.split(/[\\/]/).pop() || DEFAULT_TITLE;
-      const title = filename.replace(/\.txt$/i, "") || DEFAULT_TITLE;
-      const contents = await readTextFile(filePath);
-      const { textId } = await createText(title, contents);
-      await refreshTexts();
-      setSelectedTextId(textId);
+      try {
+        const filename = filePath.split(/[\/]/).pop() || DEFAULT_TITLE;
+        const title = filename.replace(/\.txt$/i, "") || DEFAULT_TITLE;
+        const contents = await readTextFile(filePath);
+        const { textId } = await createText(title, contents);
+        await refreshTexts();
+        setSelectedTextId(textId);
+      } catch (error) {
+        console.error("Failed to open text file", error);
+      }
     },
     [refreshTexts]
+  );
+
+  const handleFilePaths = useCallback(
+    async (paths: string[]) => {
+      const txtPaths = paths.filter((path) => path.toLowerCase().endsWith(".txt"));
+      for (const path of txtPaths) {
+        await createTextFromFile(path);
+      }
+    },
+    [createTextFromFile]
   );
 
   const handleOpenText = useCallback(async () => {
