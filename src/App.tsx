@@ -79,46 +79,6 @@ export default function App() {
   const bodyRef = useRef(body);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
 
-  useEffect(() => {
-    let unlisten: (() => void) | null = null;
-    getCurrentWindow()
-      .onDragDropEvent(async (event) => {
-        if (event.payload.type !== "drop") return;
-        await handleFilePaths(event.payload.paths ?? []);
-      })
-      .then((cleanup) => {
-        unlisten = cleanup;
-      })
-      .catch((error) => {
-        console.error("Failed to register drag/drop handler", error);
-      });
-    return () => {
-      if (unlisten) unlisten();
-    };
-  }, [handleFilePaths]);
-
-  useEffect(() => {
-    let unlisten: (() => void) | null = null;
-    listen<string[]>("file-opened", async (event) => {
-      await handleFilePaths(event.payload ?? []);
-    })
-      .then((cleanup) => {
-        unlisten = cleanup;
-      })
-      .catch((error) => {
-        console.error("Failed to register file-open listener", error);
-      });
-
-    invoke<string[]>("take_pending_opens")
-      .then((paths) => handleFilePaths(paths ?? []))
-      .catch((error) => {
-        console.error("Failed to load pending file opens", error);
-      });
-
-    return () => {
-      if (unlisten) unlisten();
-    };
-  }, [handleFilePaths]);
 
   useEffect(() => {
     bodyRef.current = body;
@@ -335,6 +295,47 @@ export default function App() {
     },
     [createTextFromFile]
   );
+
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    getCurrentWindow()
+      .onDragDropEvent(async (event) => {
+        if (event.payload.type !== "drop") return;
+        await handleFilePaths(event.payload.paths ?? []);
+      })
+      .then((cleanup) => {
+        unlisten = cleanup;
+      })
+      .catch((error) => {
+        console.error("Failed to register drag/drop handler", error);
+      });
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, [handleFilePaths]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    listen<string[]>("file-opened", async (event) => {
+      await handleFilePaths(event.payload ?? []);
+    })
+      .then((cleanup) => {
+        unlisten = cleanup;
+      })
+      .catch((error) => {
+        console.error("Failed to register file-open listener", error);
+      });
+
+    invoke<string[]>("take_pending_opens")
+      .then((paths) => handleFilePaths(paths ?? []))
+      .catch((error) => {
+        console.error("Failed to load pending file opens", error);
+      });
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, [handleFilePaths]);
 
   const handleOpenText = useCallback(async () => {
     const baseDir = await appDataDir();
