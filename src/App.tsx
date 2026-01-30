@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { save } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { open, save } from "@tauri-apps/plugin-dialog";
+import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { appDataDir } from "@tauri-apps/api/path";
 import historyIcon from "./assets/history.png";
 import {
   createText,
@@ -264,6 +266,30 @@ export default function App() {
     await refreshTexts();
     setSelectedTextId(textId);
   }, [refreshTexts]);
+
+  const createTextFromFile = useCallback(
+    async (filePath: string) => {
+      const filename = filePath.split(/[\\/]/).pop() || DEFAULT_TITLE;
+      const title = filename.replace(/\.txt$/i, "") || DEFAULT_TITLE;
+      const contents = await readTextFile(filePath);
+      const { textId } = await createText(title, contents);
+      await refreshTexts();
+      setSelectedTextId(textId);
+    },
+    [refreshTexts]
+  );
+
+  const handleOpenText = useCallback(async () => {
+    const baseDir = await appDataDir();
+    const path = await open({
+      multiple: false,
+      directory: false,
+      filters: [{ name: "Text", extensions: ["txt"] }],
+      defaultPath: baseDir
+    });
+    if (!path || Array.isArray(path)) return;
+    await createTextFromFile(path);
+  }, [createTextFromFile]);
 
   const handleDeleteText = useCallback(
     async (promptId: string) => {
