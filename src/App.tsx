@@ -635,6 +635,9 @@ export default function App() {
           <button className="button button--primary" onClick={handleNewText}>
             New Text
           </button>
+          <button className="button" onClick={handleOpenText}>
+            Open Text
+          </button>
         </div>
       </aside>
 
