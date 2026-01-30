@@ -78,6 +78,26 @@ export default function App() {
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
 
   useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    getCurrentWindow()
+      .onDragDropEvent(async (event) => {
+        if (event.payload.type !== "drop") return;
+        const [path] = event.payload.paths ?? [];
+        if (!path || !path.toLowerCase().endsWith(".txt")) return;
+        await createTextFromFile(path);
+      })
+      .then((cleanup) => {
+        unlisten = cleanup;
+      })
+      .catch((error) => {
+        console.error("Failed to register drag/drop handler", error);
+      });
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, [createTextFromFile]);
+
+  useEffect(() => {
     bodyRef.current = body;
   }, [body]);
 
