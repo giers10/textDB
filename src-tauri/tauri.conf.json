@@ -46,6 +46,21 @@
       "icons/icon.icns",
       "icons/icon.ico",
       "icons/icon.png"
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "txt"
+        ],
+        "name": "Text Document",
+        "description": "Plain text document",
+        "mimeType": "text/plain",
+        "role": "Editor",
+        "rank": "Default",
+        "contentTypes": [
+          "public.plain-text"
+        ]
+      }
     ]
   }
 }
