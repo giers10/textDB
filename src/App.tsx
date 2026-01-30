@@ -84,9 +84,7 @@ export default function App() {
     getCurrentWindow()
       .onDragDropEvent(async (event) => {
         if (event.payload.type !== "drop") return;
-        const [path] = event.payload.paths ?? [];
-        if (!path || !path.toLowerCase().endsWith(".txt")) return;
-        await createTextFromFile(path);
+        await handleFilePaths(event.payload.paths ?? []);
       })
       .then((cleanup) => {
         unlisten = cleanup;
