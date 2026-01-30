@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::sync::Mutex;
-use tauri::{Emitter, Manager, RunEvent};
+use tauri::{Emitter, Manager, RunEvent, Wry};
 
 struct PendingOpens(Mutex<Vec<String>>);
 
@@ -22,7 +22,7 @@ fn main() {
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_sql::Builder::default().build())
     .plugin(
-      tauri::plugin::Builder::new("file-open")
+      tauri::plugin::Builder::<Wry, ()>::new("file-open")
         .on_event(|app, event| {
           #[cfg(any(target_os = "macos", target_os = "ios"))]
           if let RunEvent::Opened { urls } = event {
