@@ -88,11 +88,16 @@ export default function App() {
     }
     return 16;
   });
+  const [showLineNumbers, setShowLineNumbers] = useState(() => {
+    return localStorage.getItem("textdb.lineNumbers") === "true";
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
   });
 
   const bodyRef = useRef(body);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const lineNumbersRef = useRef<HTMLDivElement | null>(null);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
 
@@ -816,13 +821,26 @@ export default function App() {
                 </div>
               </div>
 
-              <textarea
-                className="editor__textarea"
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-                placeholder="Write your text here…"
-                readOnly={isViewingHistory}
-              />
+              <div className="editor__textarea-wrap">
+                {showLineNumbers ? (
+                  <div className="line-numbers" ref={lineNumbersRef}>
+                    {lineNumbers.map((line) => (
+                      <div key={line} className="line-numbers__line">
+                        {line}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <textarea
+                  ref={textareaRef}
+                  className="editor__textarea"
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                  onScroll={handleTextareaScroll}
+                  placeholder="Write your text here…"
+                  readOnly={isViewingHistory}
+                />
+              </div>
 
               <div className="editor__footer">
                 {hasText ? (
@@ -974,6 +992,17 @@ export default function App() {
                 <option value="default">Default</option>
                 <option value="light">Bright</option>
               </select>
+            </div>
+            <div className="settings-panel__section settings-panel__section--row">
+              <label className="settings-panel__label" htmlFor="line-numbers-toggle">
+                Line numbers
+              </label>
+              <input
+                id="line-numbers-toggle"
+                type="checkbox"
+                checked={showLineNumbers}
+                onChange={(event) => setShowLineNumbers(event.target.checked)}
+              />
             </div>
             <div className="settings-panel__section">
               <label className="settings-panel__label" htmlFor="text-size">
