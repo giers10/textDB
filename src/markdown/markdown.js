@@ -192,10 +192,24 @@ export function markdownToHTML(text) {
   const linesWithHtml = html.split("\n");
   const htmlLines = [];
   let paragraph = [];
+  let emptyCount = 0;
+  let seenContent = false;
   const flushParagraph = () => {
     if (paragraph.length === 0) return;
     htmlLines.push(`<p class="md-paragraph">${paragraph.join("<br />")}</p>`);
     paragraph = [];
+    seenContent = true;
+  };
+  const pushExtraBreaks = () => {
+    if (!seenContent) {
+      emptyCount = 0;
+      return;
+    }
+    const extraBreaks = Math.max(0, emptyCount - 1);
+    for (let j = 0; j < extraBreaks; j += 1) {
+      htmlLines.push("<br />");
+    }
+    emptyCount = 0;
   };
 
   const isBlockLine = (value) => {
@@ -211,13 +225,23 @@ export function markdownToHTML(text) {
   for (let i = 0; i < linesWithHtml.length; i += 1) {
     const line = linesWithHtml[i] ?? "";
     if (line.trim().length === 0) {
-      flushParagraph();
+      if (paragraph.length > 0) {
+        flushParagraph();
+      }
+      emptyCount += 1;
       continue;
     }
     if (isBlockLine(line)) {
-      flushParagraph();
+      if (paragraph.length > 0) {
+        flushParagraph();
+      }
+      pushExtraBreaks();
       htmlLines.push(line);
+      seenContent = true;
       continue;
+    }
+    if (emptyCount > 0) {
+      pushExtraBreaks();
     }
     paragraph.push(line);
   }
