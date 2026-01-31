@@ -94,7 +94,7 @@ export function markdownToHTML(text) {
       const lines = blockquoteBlock
         .split(/\n/)
         .map((line) => line.replace(/^[ \t]*>\s*/, '').trim())
-        .join('\n');
+        .join('<br />');
       return `${lead}<blockquote class="md-blockquote">${lines}</blockquote>`;
     }
   );
@@ -188,44 +188,41 @@ export function markdownToHTML(text) {
     )}" target="_blank" rel="noreferrer noopener"><span class="md-link__label">${label}</span> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md-icon md-icon-external"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg><span class="md-link__tooltip">${tooltip}</span></a>`;
   });
 
-  // 6) Convert line-breaks to <br /> for NON-code content (preserve blank lines)
+  // 6) Convert line-breaks to HTML paragraphs and <br /> inside paragraphs
   const linesWithHtml = html.split("\n");
   const htmlLines = [];
-  let emptyCount = 0;
-  let seenNonEmpty = false;
+  let paragraph = [];
+  const flushParagraph = () => {
+    if (paragraph.length === 0) return;
+    htmlLines.push(`<p class="md-paragraph">${paragraph.join("<br />")}</p>`);
+    paragraph = [];
+  };
+
+  const isBlockLine = (value) => {
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    if (/^@@CODEBLOCK\d+@@$/.test(trimmed)) return true;
+    if (!trimmed.startsWith("<")) return false;
+    return /^(<h[1-4]\b|<hr\b|<table\b|<ul\b|<ol\b|<blockquote\b|<div class="md-codeblock"\b|<\/(?:h[1-4]|table|ul|ol|blockquote)>)/.test(
+      trimmed
+    );
+  };
+
   for (let i = 0; i < linesWithHtml.length; i += 1) {
     const line = linesWithHtml[i] ?? "";
-    const isEmpty = line.trim().length === 0;
-
-    if (isEmpty) {
-      emptyCount += 1;
+    if (line.trim().length === 0) {
+      flushParagraph();
       continue;
     }
-
-    if (seenNonEmpty) {
-      const breaksToAdd = Math.max(1, emptyCount);
-      for (let j = 0; j < breaksToAdd; j += 1) {
-        htmlLines.push("<br />");
-      }
-    } else if (emptyCount > 0) {
-      const extraBreaks = Math.max(0, emptyCount - 1);
-      for (let j = 0; j < extraBreaks; j += 1) {
-        htmlLines.push("<br />");
-      }
+    if (isBlockLine(line)) {
+      flushParagraph();
+      htmlLines.push(line);
+      continue;
     }
-
-    emptyCount = 0;
-    htmlLines.push(line);
-    seenNonEmpty = true;
+    paragraph.push(line);
   }
 
-  if (emptyCount > 0) {
-    const extraBreaks = Math.max(0, emptyCount - 1);
-    for (let j = 0; j < extraBreaks; j += 1) {
-      htmlLines.push("<br />");
-    }
-  }
-
+  flushParagraph();
   html = htmlLines.join("");
 
   // 7) Restore code blocks with header + copy button
