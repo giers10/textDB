@@ -927,6 +927,7 @@ export default function App() {
                   <div
                     className="markdown-preview md-root"
                     dangerouslySetInnerHTML={{ __html: markdownToHTML(body) }}
+                    onClick={handleMarkdownLinkClick}
                   />
                 ) : (
                   <textarea
