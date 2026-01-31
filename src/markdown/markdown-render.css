@@ -39,6 +39,10 @@ body[data-theme="light"] .md-root {
   color: var(--md-text-color);
 }
 
+.md-root > .md-heading:first-child {
+  margin-top: 0;
+}
+
 .md-heading--1 {
   font-size: 1.8rem;
 }
