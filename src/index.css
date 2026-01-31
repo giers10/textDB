@@ -319,11 +319,14 @@ body {
   gap: 8px;
 }
 
-.editor__status-row {
+.editor__title-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
+}
+
+.editor__title-row .title-input {
+  flex: 1;
 }
 
 .title-input {
@@ -499,6 +502,14 @@ body {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+  position: relative;
+}
+
+.editor__footer-status {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .banner {
