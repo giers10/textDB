@@ -161,6 +161,13 @@ export default function App() {
   }, [showLineNumbers]);
 
   useEffect(() => {
+    localStorage.setItem(
+      "textdb.expandedFolders",
+      JSON.stringify(Array.from(expandedFolders))
+    );
+  }, [expandedFolders]);
+
+  useEffect(() => {
     if (selectedTextId) {
       localStorage.setItem("textdb.selectedTextId", selectedTextId);
     }
