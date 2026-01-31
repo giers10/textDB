@@ -968,6 +968,13 @@ export default function App() {
               <div className="editor__footer">
                 {hasText ? (
                   <>
+                    <button
+                      className="button"
+                      type="button"
+                      onClick={() => setMarkdownPreview((value) => !value)}
+                    >
+                      {markdownPreview ? "Edit" : "Preview Markdown"}
+                    </button>
                     <button className="button" onClick={handleExportText}>
                       Export Text
                     </button>
@@ -981,13 +988,6 @@ export default function App() {
                         </button>
                       </>
                     ) : null}
-                    <button
-                      className="button"
-                      type="button"
-                      onClick={() => setMarkdownPreview((value) => !value)}
-                    >
-                      {markdownPreview ? "Edit" : "Preview Markdown"}
-                    </button>
                   </>
                 ) : null}
                 {hasDraft && !isViewingHistory ? (
