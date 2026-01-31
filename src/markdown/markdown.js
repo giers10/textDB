@@ -204,6 +204,17 @@ export function markdownToHTML(text) {
       "$1"
     );
 
+  // 6.2) Trim breaks around code blocks
+  html = html
+    .replace(new RegExp(`${brPattern}\\s*(?=<div class="md-codeblock"\\b)`, "g"), "")
+    .replace(
+      new RegExp(
+        `(<div class="md-codeblock"[^>]*>[\\s\\S]*?<\\/div>)\\s*(?:${brPattern}\\s*)+`,
+        "g"
+      ),
+      "$1"
+    );
+
   // 7) Restore code blocks with header + copy button
   html = html.replace(/@@CODEBLOCK(\d+)@@/g, (_, idx) => {
     const { lang, code } = codeblocks[+idx];
