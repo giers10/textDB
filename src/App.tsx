@@ -612,6 +612,191 @@ export default function App() {
     });
   }, [getNextFolderSortOrder, refreshFolders]);
 
+  const buildFolderPath = useCallback(
+    (folderId: string) => {
+      const names: string[] = [];
+      let current: string | null = folderId;
+      const seen = new Set<string>();
+      while (current) {
+        if (seen.has(current)) break;
+        seen.add(current);
+        const folder = folderById.get(current);
+        if (!folder) break;
+        names.unshift(folder.name);
+        current = folder.parent_id ?? null;
+      }
+      return names.join(" / ");
+    },
+    [folderById]
+  );
+
+  const folderPathList = useMemo(() => {
+    return folders
+      .map((folder) => ({
+        id: folder.id,
+        label: buildFolderPath(folder.id)
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [buildFolderPath, folders]);
+
+  const handleMoveTextToFolder = useCallback(
+    async (textId: string, folderId: string | null) => {
+      await moveTextToFolder(textId, folderId, null);
+      await refreshTexts();
+    },
+    [refreshTexts]
+  );
+
+  const handleTextContextMenu = useCallback(
+    async (event: React.MouseEvent, textId: string) => {
+      event.preventDefault();
+      const items = [
+        {
+          text: "Top level",
+          action: () => {
+            handleMoveTextToFolder(textId, null).catch((error) => {
+              console.error("Failed to move text", error);
+            });
+          }
+        },
+        ...folderPathList.map((folder) => ({
+          text: folder.label,
+          action: () => {
+            handleMoveTextToFolder(textId, folder.id).catch((error) => {
+              console.error("Failed to move text", error);
+            });
+          }
+        }))
+      ];
+
+      const menu = await Menu.new({
+        items: [
+          {
+            text: "Move to folder",
+            items
+          }
+        ]
+      });
+      await menu.popup(undefined, getCurrentWindow());
+    },
+    [folderPathList, handleMoveTextToFolder]
+  );
+
+  const reorderIds = useCallback((ids: string[], draggedId: string, targetId: string) => {
+    const next = ids.filter((id) => id !== draggedId);
+    const targetIndex = next.indexOf(targetId);
+    const insertIndex = targetIndex === -1 ? next.length : targetIndex;
+    next.splice(insertIndex, 0, draggedId);
+    return next;
+  }, []);
+
+  const isDescendantFolder = useCallback(
+    (folderId: string, potentialAncestorId: string) => {
+      let current: string | null = folderId;
+      while (current) {
+        if (current === potentialAncestorId) return true;
+        current = folderById.get(current)?.parent_id ?? null;
+      }
+      return false;
+    },
+    [folderById]
+  );
+
+  const handleTextDrop = useCallback(
+    async (event: React.DragEvent, targetTextId: string, targetFolderId: string | null) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const dragItem = dragItemRef.current;
+      if (!dragItem || dragItem.type !== "text") return;
+      const currentList = textsByFolder.get(targetFolderId ?? null) ?? [];
+      let ids = currentList.map((text) => text.id);
+      if (!ids.includes(dragItem.id)) {
+        const targetIndex = ids.indexOf(targetTextId);
+        ids.splice(targetIndex === -1 ? ids.length : targetIndex, 0, dragItem.id);
+      } else {
+        ids = reorderIds(ids, dragItem.id, targetTextId);
+      }
+      await moveTextToFolder(dragItem.id, targetFolderId, 0);
+      await setTextOrder(ids);
+      await refreshTexts();
+      dragItemRef.current = null;
+    },
+    [refreshTexts, reorderIds, textsByFolder]
+  );
+
+  const handleFolderDrop = useCallback(
+    async (event: React.DragEvent, targetFolder: Folder) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const dragItem = dragItemRef.current;
+      if (!dragItem) return;
+
+      if (dragItem.type === "text") {
+        const list = textsByFolder.get(targetFolder.id) ?? [];
+        const ids = list.map((text) => text.id);
+        if (!ids.includes(dragItem.id)) {
+          ids.push(dragItem.id);
+        }
+        await moveTextToFolder(dragItem.id, targetFolder.id, 0);
+        await setTextOrder(ids);
+        await refreshTexts();
+        dragItemRef.current = null;
+        return;
+      }
+
+      if (dragItem.type === "folder") {
+        if (dragItem.id === targetFolder.id) return;
+        if (isDescendantFolder(targetFolder.id, dragItem.id)) return;
+        const sameParent = dragItem.parentId === targetFolder.parent_id;
+        if (sameParent) {
+          const siblings = foldersByParent.get(targetFolder.parent_id ?? null) ?? [];
+          const ids = siblings.map((folder) => folder.id);
+          const next = reorderIds(ids, dragItem.id, targetFolder.id);
+          await setFolderOrder(next);
+          await refreshFolders();
+        } else {
+          const children = foldersByParent.get(targetFolder.id) ?? [];
+          const ids = children.map((folder) => folder.id);
+          ids.push(dragItem.id);
+          await moveFolder(dragItem.id, targetFolder.id, 0);
+          await setFolderOrder(ids);
+          await refreshFolders();
+        }
+        dragItemRef.current = null;
+      }
+    },
+    [foldersByParent, isDescendantFolder, refreshFolders, refreshTexts, reorderIds, textsByFolder]
+  );
+
+  const handleRootDrop = useCallback(
+    async (event: React.DragEvent) => {
+      event.preventDefault();
+      const dragItem = dragItemRef.current;
+      if (!dragItem) return;
+      if (dragItem.type === "text") {
+        const list = textsByFolder.get(null) ?? [];
+        const ids = list.map((text) => text.id);
+        if (!ids.includes(dragItem.id)) {
+          ids.push(dragItem.id);
+        }
+        await moveTextToFolder(dragItem.id, null, 0);
+        await setTextOrder(ids);
+        await refreshTexts();
+      } else if (dragItem.type === "folder") {
+        const list = foldersByParent.get(null) ?? [];
+        const ids = list.map((folder) => folder.id);
+        if (!ids.includes(dragItem.id)) {
+          ids.push(dragItem.id);
+        }
+        await moveFolder(dragItem.id, null, 0);
+        await setFolderOrder(ids);
+        await refreshFolders();
+      }
+      dragItemRef.current = null;
+    },
+    [foldersByParent, refreshFolders, refreshTexts, textsByFolder]
+  );
+
   const createTextFromFile = useCallback(
     async (filePath: string) => {
       try {
