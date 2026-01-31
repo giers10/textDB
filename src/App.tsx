@@ -92,6 +92,10 @@ export default function App() {
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [markdownPreview, setMarkdownPreview] = useState(false);
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+  const [editingFolderName, setEditingFolderName] = useState("");
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [editingTextTitle, setEditingTextTitle] = useState("");
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
     const stored = localStorage.getItem("textdb.expandedFolders");
     if (!stored) return new Set();
