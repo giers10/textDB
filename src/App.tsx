@@ -914,7 +914,11 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="editor__textarea-wrap">
+              <div
+                className={`editor__textarea-wrap${
+                  markdownPreview ? " editor__textarea-wrap--preview" : ""
+                }`}
+              >
                 {showLineNumbersActive ? (
                   <div className="line-measure" ref={measureRef} aria-hidden="true">
                     {lines.map((line, index) => (
