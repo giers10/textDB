@@ -331,6 +331,7 @@ export default function App() {
       setDraftBaseVersionId(null);
       setViewingVersion(null);
       setSelectedHistoryId(null);
+      setMarkdownPreview(false);
       historySnapshotRef.current = null;
       return;
     }
@@ -367,6 +368,7 @@ export default function App() {
       setSelectedHistoryId(
         draft ? `draft:${selectedTextId}` : manualVersion?.id ?? null
       );
+      setMarkdownPreview(false);
       historySnapshotRef.current = null;
     };
 
