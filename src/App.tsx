@@ -75,6 +75,7 @@ export default function App() {
   const [viewingVersion, setViewingVersion] = useState<HistoryEntry | null>(null);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const bodyRef = useRef(body);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
@@ -618,10 +619,22 @@ export default function App() {
   }, [handleSaveVersion]);
 
   return (
-    <div className="app">
+    <div className={`app${sidebarCollapsed ? " app--sidebar-collapsed" : ""}`}>
+      {!sidebarCollapsed ? (
       <aside className="sidebar">
         <div className="sidebar__header">
-          <div className="app-title">TextDB</div>
+          <div className="sidebar__title-row">
+            <div className="app-title">TextDB</div>
+            <button
+              className="icon-button icon-button--ghost"
+              onClick={() => setSidebarCollapsed(true)}
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+              type="button"
+            >
+              <span aria-hidden="true">&lt;</span>
+            </button>
+          </div>
           <input
             className="search"
             placeholder="Search texts"
@@ -688,8 +701,22 @@ export default function App() {
           </button>
         </div>
       </aside>
+      ) : null}
 
       <main className="workspace">
+        {sidebarCollapsed ? (
+          <div className="workspace__topbar">
+            <button
+              className="icon-button icon-button--ghost"
+              onClick={() => setSidebarCollapsed(false)}
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
+              type="button"
+            >
+              <span aria-hidden="true">&gt;</span>
+            </button>
+          </div>
+        ) : null}
         {!selectedTextId ? (
           <div className="empty-state">
             <div className="empty-state__title">Create your first text</div>
