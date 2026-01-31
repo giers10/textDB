@@ -902,4 +902,9 @@ body[data-theme="light"] .editor__textarea-wrap:focus-within {
     padding: 0;
     overflow: visible;
   }
+
+  body.print-markdown .md-codeblock__copy,
+  body.print-markdown .md-icon-external {
+    display: none !important;
+  }
 }
