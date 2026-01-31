@@ -8,8 +8,12 @@ TextDB is a **non-destructive**, completely offline, local-first text editor. It
 - Sidebar list of texts with live search (titles + version bodies).
 - Editor with title, content area, and clear save status.
 - Cmd/Ctrl+S creates a new immutable manual version.
+- Markdown preview mode with external link support and printable output.
+- Tab toggles Edit/Preview mode.
 - Autosave draft (debounced) that can be safely discarded.
 - History panel listing versions by timestamp (drafts included when present).
+- Settings: theme (default/bright), text size slider, and optional line numbers.
+- Collapsible sidebar with persistent state.
 - Export the current text to a `.txt` file.
 - Open `.txt` or `.md` files to create new entries from file content.
 - Drag and drop `.txt` or `.md` files onto the window to import them.
@@ -55,3 +59,4 @@ npm run tauri dev
 - SQLite is loaded via `Database.load("sqlite:text.db")`.
 - The database file is stored in the Tauri app data directory.
 - The app is fully offline by design: no telemetry, no external fonts, no CDNs.
+- UI settings (theme, text size, line numbers, sidebar state, last selected text) are stored in localStorage.
