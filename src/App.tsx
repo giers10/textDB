@@ -183,6 +183,22 @@ export default function App() {
     return () => observer.disconnect();
   }, [showLineNumbers]);
 
+  useEffect(() => {
+    if (!showLineNumbers) return;
+    let raf = 0;
+    const handleResize = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        setMeasureTick((tick) => tick + 1);
+      });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [showLineNumbers]);
+
   useLayoutEffect(() => {
     if (!showLineNumbers) return;
     const textarea = textareaRef.current;
@@ -196,7 +212,7 @@ export default function App() {
     if (lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = textarea.scrollTop;
     }
-  }, [lines, showLineNumbers, textSize, measureTick]);
+  }, [lines, showLineNumbers, textSize, measureTick, sidebarCollapsed, historyOpen]);
 
   useEffect(() => {
     if (showLineNumbers && textareaRef.current && lineNumbersRef.current) {
