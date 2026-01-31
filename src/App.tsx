@@ -422,7 +422,7 @@ export default function App() {
     async (filePath: string) => {
       try {
         const filename = filePath.split(/[\/]/).pop() || DEFAULT_TITLE;
-        const title = filename.replace(/\.txt$/i, "") || DEFAULT_TITLE;
+        const title = filename.replace(/\.(txt|md)$/i, "") || DEFAULT_TITLE;
         const contents = await readTextFile(filePath);
         const { textId } = await createText(title, contents);
         await refreshTexts();
@@ -437,7 +437,10 @@ export default function App() {
   const handleFilePaths = useCallback(
     async (paths: string[]) => {
       const now = Date.now();
-      const txtPaths = paths.filter((path) => path.toLowerCase().endsWith(".txt"));
+      const txtPaths = paths.filter((path) => {
+        const lower = path.toLowerCase();
+        return lower.endsWith(".txt") || lower.endsWith(".md");
+      });
       const recent = recentOpenRef.current;
       for (const path of txtPaths) {
         const key = path.toLowerCase();
@@ -499,7 +502,7 @@ export default function App() {
     const path = await open({
       multiple: false,
       directory: false,
-      filters: [{ name: "Text", extensions: ["txt"] }],
+      filters: [{ name: "Text/Markdown", extensions: ["txt", "md"] }],
       defaultPath: baseDir
     });
     if (!path || Array.isArray(path)) return;
