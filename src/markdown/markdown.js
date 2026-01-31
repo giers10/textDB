@@ -191,6 +191,19 @@ export function markdownToHTML(text) {
   // 6) Convert line-breaks to <br /> for NON-code content (preserve blank lines)
   html = html.replace(/\n/g, '<br />');
 
+  // 6.1) Trim breaks around block elements (headings/lists/etc.) to avoid double spacing
+  const brPattern = "<br\\s*\\/?>";
+  const blockPattern = "(?:h[1-4]|hr|table|ul|ol|blockquote)";
+  html = html
+    .replace(
+      new RegExp(`(${brPattern}\\s*)+(<(?:${blockPattern})\\b[^>]*>)`, "g"),
+      "$2"
+    )
+    .replace(
+      new RegExp(`(<\\/(?:${blockPattern})>)(?:\\s*${brPattern})+`, "g"),
+      "$1"
+    );
+
   // 7) Restore code blocks with header + copy button
   html = html.replace(/@@CODEBLOCK(\d+)@@/g, (_, idx) => {
     const { lang, code } = codeblocks[+idx];
