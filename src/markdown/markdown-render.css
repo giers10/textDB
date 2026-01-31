@@ -181,6 +181,8 @@ body[data-theme="light"] .md-root {
 }
 
 .md-icon {
+  width: 1em;
+  height: 1em;
   stroke: currentColor;
   fill: none;
   flex-shrink: 0;
