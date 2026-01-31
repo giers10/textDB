@@ -188,28 +188,8 @@ export function markdownToHTML(text) {
     )}" target="_blank" rel="noreferrer noopener"><span class="md-link__label">${label}</span> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md-icon md-icon-external"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg><span class="md-link__tooltip">${tooltip}</span></a>`;
   });
 
-  // 6) Convert line-breaks to <br> for NON-code content
-  html = html.replace(/\n/g, '<br>');
-
-  // 6.1) Collapse 3+ consecutive <br> into a double-break
-  html = html.replace(/(?:<br>[\s]*){3,}/g, '<br><br>');
-
-  // 6.2) Normalize spacing around block elements
-  html = html
-    .replace(
-      /(<br>\s*)+(<(?:h[1-4]|hr|table|ul|ol|blockquote)\b[^>]*>)/g,
-      '<br>$2'
-    )
-    .replace(
-      /(<\/(?:h[1-4]|table|ul|ol|blockquote)>\s*)(<br>\s*)+/g,
-      '$1<br>'
-    );
-
-  // 6.3) Trim breaks after headings
-  html = html.replace(/(<\/h[1-4]>)(<br>\s*)+/g, '$1');
-
-  // 6.4) Trim trailing breaks after lists
-  html = html.replace(/(<\/(?:ul|ol)>)(<br>\s*)+/g, '$1');
+  // 6) Convert line-breaks to <br /> for NON-code content (preserve blank lines)
+  html = html.replace(/\n/g, '<br />');
 
   // 7) Restore code blocks with header + copy button
   html = html.replace(/@@CODEBLOCK(\d+)@@/g, (_, idx) => {
@@ -229,14 +209,6 @@ export function markdownToHTML(text) {
 
     return `<div class="md-codeblock">${head}${body}</div>`;
   });
-
-  // 8) Cleanup around codeblocks
-  html = html
-    .replace(/<br>\s*(?=<div class="md-codeblock"\b)/g, '')
-    .replace(
-      /(<div class="md-codeblock"[^>]*>[\s\S]*?<\/div>)\s*<br>/g,
-      '$1'
-    );
 
   return html;
 }
