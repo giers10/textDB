@@ -1,0 +1,262 @@
+:root {
+  /* Core tokens */
+  --md-border-color: #e0e0e0;
+  --md-surface: #f8f8f8;
+  --md-surface-alt: #fdfdfd;
+  --md-radius: 12px;
+
+  --md-text-color: #111;
+  --md-muted-color: #555;
+  --md-link-color: #0a66c2;
+  --md-link-hover-color: #004182;
+
+  --md-code-bg: #fdfdfd;
+  --md-code-inline-bg: #f3f3f3;
+
+  --md-code-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* Optional wrapper if you choose to wrap markdown output:
+   <div class="md-root" v-html="markdownToHTML(text)"> */
+.md-root {
+  color: var(--md-text-color);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Headings */
+.md-heading {
+  margin: 1.5rem 0 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--md-text-color);
+}
+
+.md-heading--1 {
+  font-size: 1.8rem;
+}
+
+.md-heading--2 {
+  font-size: 1.5rem;
+}
+
+.md-heading--3 {
+  font-size: 1.25rem;
+}
+
+.md-heading--4 {
+  font-size: 1.1rem;
+}
+
+/* Horizontal rule */
+.md-hr {
+  border: 0;
+  border-top: 1px solid var(--md-border-color);
+  margin: 1.5rem 0;
+}
+
+/* Lists */
+.md-list {
+  padding-left: 1.4rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.md-list--unordered {
+  list-style: disc;
+}
+
+.md-list--ordered {
+  list-style: decimal;
+}
+
+.md-list__item {
+  margin: 0.2rem 0;
+}
+
+/* Tables */
+.md-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin: 1rem 0;
+  border: 1px solid var(--md-border-color);
+  border-radius: var(--md-radius);
+  overflow: hidden;
+}
+
+.md-table thead {
+  background: var(--md-surface);
+}
+
+.md-table__row {
+}
+
+.md-table__row--head {
+}
+
+.md-table__head-cell,
+.md-table__cell {
+  padding: 0.6rem 0.75rem;
+  vertical-align: top;
+  text-align: left;
+  border-bottom: 1px solid var(--md-border-color);
+}
+
+.md-table__row:last-child .md-table__cell {
+  border-bottom: none;
+}
+
+.md-align-left {
+  text-align: left;
+}
+
+.md-align-center {
+  text-align: center;
+}
+
+.md-align-right {
+  text-align: right;
+}
+
+/* Blockquotes */
+.md-blockquote {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--md-border-color);
+  background: var(--md-surface);
+  color: var(--md-muted-color);
+}
+
+/* Code blocks */
+.md-codeblock {
+  margin: 1rem 0;
+  border: 1px solid var(--md-border-color);
+  border-radius: var(--md-radius);
+  overflow: hidden;
+  background: #fff;
+}
+
+.md-codeblock__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--md-surface);
+  border-bottom: 1px solid var(--md-border-color);
+}
+
+.md-codeblock__lang {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--md-text-color);
+}
+
+.md-codeblock__copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--md-border-color);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--md-text-color);
+  cursor: pointer;
+}
+
+.md-codeblock__copy:hover {
+  background: #f3f3f3;
+}
+
+.md-codeblock__copy:active {
+  transform: translateY(1px);
+}
+
+.md-icon {
+  stroke: currentColor;
+  fill: none;
+  flex-shrink: 0;
+}
+
+/* Could be specialized later if needed */
+.md-icon-external {
+}
+
+.md-icon-copy {
+}
+
+.md-codeblock__pre {
+  margin: 0;
+  padding: 0.75rem;
+  border: 0;
+  overflow: auto;
+  max-width: 100%;
+  background: var(--md-code-bg);
+}
+
+.md-codeblock__code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  font-family: var(--md-code-font);
+  font-size: 0.95em;
+}
+
+/* Inline code (outside of fenced blocks) */
+code:not(.md-codeblock__code) {
+  font-family: var(--md-code-font);
+  font-size: 0.95em;
+  padding: 0.1em 0.25em;
+  border-radius: 4px;
+  background: var(--md-code-inline-bg);
+}
+
+/* Links */
+.md-link {
+  color: var(--md-link-color);
+  text-decoration: underline;
+}
+
+.md-link:hover,
+.md-link:focus-visible {
+  color: var(--md-link-hover-color);
+}
+
+.md-link--external {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.md-link__label {
+  /* can be customized if needed */
+}
+
+.md-link__tooltip {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  background: #111;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.md-link--external:hover .md-link__tooltip,
+.md-link--external:focus-visible .md-link__tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
