@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { open, save } from "@tauri-apps/plugin-dialog";
+import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appDataDir } from "@tauri-apps/api/path";
@@ -141,6 +142,19 @@ export default function App() {
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
   const hasText = body.trim().length > 0;
   const showLineNumbersActive = showLineNumbers && !markdownPreview;
+
+  const handleMarkdownLinkClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement | null;
+      const link = target?.closest?.("a");
+      if (!link) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("/")) return;
+      event.preventDefault();
+      openExternal(href);
+    },
+    []
+  );
 
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
