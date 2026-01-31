@@ -671,7 +671,6 @@ export default function App() {
     const currentTitle = texts.find((text) => text.id === textId)?.title ?? "";
     clearTextEditing();
     if (nextTitle === currentTitle) return;
-    applyTitleUpdate(textId, nextTitle);
     if (selectedTextId === textId) {
       setTitle(nextTitle);
       setLastPersistedTitle(nextTitle);
@@ -679,7 +678,6 @@ export default function App() {
     await updateTextTitle(textId, nextTitle);
     await refreshTexts();
   }, [
-    applyTitleUpdate,
     clearTextEditing,
     editingTextId,
     editingTextTitle,
