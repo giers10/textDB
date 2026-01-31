@@ -311,6 +311,16 @@ export default function App() {
     }
   }, [search]);
 
+  const refreshFolders = useCallback(async () => {
+    setLoadingFolders(true);
+    try {
+      const rows = await listFolders();
+      setFolders(rows);
+    } finally {
+      setLoadingFolders(false);
+    }
+  }, []);
+
   const refreshVersions = useCallback(async () => {
     if (!selectedTextId || !historyOpen) return;
     const [manualRows, draft] = await Promise.all([
