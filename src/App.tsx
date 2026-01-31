@@ -155,6 +155,25 @@ export default function App() {
 
   const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
 
+  const lineNumbers = useMemo(() => {
+    const count = Math.max(body.split("
+").length, 1);
+    return Array.from({ length: count }, (_, index) => index + 1);
+  }, [body]);
+
+  const handleTextareaScroll = useCallback((event: React.UIEvent<HTMLTextAreaElement>) => {
+    if (!showLineNumbers) return;
+    if (lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = event.currentTarget.scrollTop;
+    }
+  }, [showLineNumbers]);
+
+  useEffect(() => {
+    if (showLineNumbers && textareaRef.current && lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  }, [showLineNumbers, body]);
+
 
   const refreshTexts = useCallback(async () => {
     setLoadingTexts(true);
