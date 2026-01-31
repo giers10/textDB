@@ -357,6 +357,12 @@ export default function App() {
   }, [refreshTexts]);
 
   useEffect(() => {
+    refreshFolders().catch((error) => {
+      console.error("Failed to load folders", error);
+    });
+  }, [refreshFolders]);
+
+  useEffect(() => {
     if (selectedTextId || texts.length === 0) return;
     const storedId = localStorage.getItem("textdb.selectedTextId");
     const fallback = texts[0].id;
