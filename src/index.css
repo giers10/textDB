@@ -1,7 +1,7 @@
 :root {
   color-scheme: dark;
   font-family: "SF Pro Text", "Segoe UI", "Helvetica Neue", "Noto Sans", sans-serif;
-  font-size: 16px;
+  font-size: var(--base-font-size, 16px);
   line-height: 1.5;
   font-weight: 400;
   --bg: #141414;
@@ -15,7 +15,34 @@
   --border: #2a2a2a;
   --shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
   --radius: 16px;
+  --bg-input: #151515;
+  --bg-contrast: #1f1f1f;
+  --bg-contrast-strong: #242424;
+  --bg-active: #202020;
+  --border-strong: #555;
+  --danger-hover: #4f4f4f;
 }
+
+body[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f4f4;
+  --bg-elevated: #ffffff;
+  --panel: #f2f2f2;
+  --ink: #1b1b1b;
+  --muted: #5f5f5f;
+  --border: #d3d3d3;
+  --accent: #e1e1e1;
+  --accent-strong: #c1c1c1;
+  --accent-warm: #d0d0d0;
+  --shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  --bg-input: #ffffff;
+  --bg-contrast: #f5f5f5;
+  --bg-contrast-strong: #ececec;
+  --bg-active: #e6e6e6;
+  --border-strong: #b5b5b5;
+  --danger-hover: #d6d6d6;
+}
+
 
 * {
   box-sizing: border-box;
@@ -140,8 +167,8 @@ body {
 }
 
 .button--danger:hover {
-  border-color: #6b6b6b;
-  background: #4f4f4f;
+  border-color: var(--accent-strong);
+  background: var(--danger-hover);
 }
 
 .button--save {
@@ -185,8 +212,8 @@ body {
 }
 
 .prompt-item.is-active {
-  border-color: #555;
-  background: #202020;
+  border-color: var(--border-strong);
+  background: var(--bg-active);
 }
 
 .prompt-item__content {
@@ -304,7 +331,7 @@ body {
 
 .title-input:focus {
   outline: none;
-  border-bottom-color: #5c5c5c;
+  border-bottom-color: var(--accent-strong);
 }
 
 .status-line {
@@ -352,9 +379,9 @@ body {
 }
 
 .icon-button.is-active {
-  border-color: #5c5c5c;
+  border-color: var(--accent-strong);
   color: var(--ink);
-  background: #202020;
+  background: var(--bg-active);
 }
 
 .status {
@@ -389,7 +416,7 @@ body {
   padding: 14px;
   font-family: "SF Mono", "Menlo", "Consolas", monospace;
   font-size: 0.95rem;
-  background: #151515;
+  background: var(--bg-input);
   color: var(--ink);
 }
 
@@ -413,7 +440,7 @@ body {
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: #1f1f1f;
+  background: var(--bg-contrast);
 }
 
 .banner__actions {
@@ -424,12 +451,12 @@ body {
 
 .banner--draft {
   border-color: #3a3a3a;
-  background: #1d1d1d;
+  background: var(--bg-contrast);
 }
 
 .banner--history {
   border-color: #3a3a3a;
-  background: #1d1d1d;
+  background: var(--bg-contrast);
 }
 
 .history {
@@ -491,15 +518,15 @@ body {
   position: relative;
   border: 1px solid transparent;
   border-radius: 12px;
-  background: #1f1f1f;
+  background: var(--bg-contrast);
   padding: 10px 42px 10px 12px;
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
 
 .history__item.is-active {
-  border-color: #555;
-  background: #242424;
+  border-color: var(--border-strong);
+  background: var(--bg-contrast-strong);
 }
 
 .history__item-content {
