@@ -12,6 +12,7 @@ import historyIconBright from "./assets/history_b.png";
 import { markdownToHTML } from "./markdown/markdown";
 import "./markdown/markdown-render.css";
 import {
+  createFolder,
   createText,
   deleteText,
   deleteTextVersion,
@@ -19,12 +20,19 @@ import {
   getDraft,
   getLatestManualVersion,
   getText,
+  listFolders,
   listTexts,
   listVersions,
-  searchTexts,
+  moveFolder,
+  moveTextToFolder,
   saveManualVersion,
+  searchTexts,
+  setFolderOrder,
+  setTextOrder,
+  updateFolderName,
   updateTextTitle,
   upsertDraft,
+  type Folder,
   type Text,
 } from "./lib/db";
 
