@@ -15,6 +15,7 @@ import "./markdown/markdown-render.css";
 import {
   createFolder,
   createText,
+  deleteFolder,
   deleteText,
   deleteTextVersion,
   discardDraft,
@@ -30,6 +31,7 @@ import {
   searchTexts,
   setFolderOrder,
   setTextOrder,
+  updateFolderName,
   updateTextTitle,
   upsertDraft,
   type Folder,
@@ -67,6 +69,7 @@ type HistoryEntry = {
 };
 
 const DEFAULT_TITLE = "Untitled Text";
+const DEFAULT_FOLDER_NAME = "New Folder";
 
 export default function App() {
   const [texts, setTexts] = useState<Text[]>([]);
@@ -138,6 +141,8 @@ export default function App() {
   const dragItemRef = useRef<{ type: "text" | "folder"; id: string; parentId: string | null } | null>(
     null
   );
+  const ignoreTextBlurRef = useRef(false);
+  const ignoreFolderBlurRef = useRef(false);
 
 
   useEffect(() => {
@@ -604,18 +609,84 @@ export default function App() {
   }, [getNextTextSortOrder, refreshTexts]);
 
   const handleNewFolder = useCallback(async () => {
-    const name = window.prompt("Folder name");
-    const trimmed = name?.trim();
-    if (!trimmed) return;
     const sortOrder = getNextFolderSortOrder(null);
-    const { folderId } = await createFolder(trimmed, null, sortOrder);
+    const { folderId } = await createFolder(DEFAULT_FOLDER_NAME, null, sortOrder);
     await refreshFolders();
     setExpandedFolders((prev) => {
       const next = new Set(prev);
       next.add(folderId);
       return next;
     });
+    setEditingTextId(null);
+    setEditingTextTitle("");
+    setEditingFolderId(folderId);
+    setEditingFolderName(DEFAULT_FOLDER_NAME);
   }, [getNextFolderSortOrder, refreshFolders]);
+
+  const clearFolderEditing = useCallback(() => {
+    setEditingFolderId(null);
+    setEditingFolderName("");
+  }, []);
+
+  const clearTextEditing = useCallback(() => {
+    setEditingTextId(null);
+    setEditingTextTitle("");
+  }, []);
+
+  const startEditingFolder = useCallback((folder: Folder) => {
+    setEditingFolderId(folder.id);
+    setEditingFolderName(folder.name);
+    setEditingTextId(null);
+    setEditingTextTitle("");
+  }, []);
+
+  const startEditingText = useCallback((text: Text) => {
+    setEditingTextId(text.id);
+    setEditingTextTitle(text.title);
+    setEditingFolderId(null);
+    setEditingFolderName("");
+  }, []);
+
+  const commitFolderEdit = useCallback(async () => {
+    if (!editingFolderId) return;
+    const folderId = editingFolderId;
+    const nextName = editingFolderName.trim() || DEFAULT_FOLDER_NAME;
+    const currentName = folderById.get(folderId)?.name ?? "";
+    clearFolderEditing();
+    if (nextName === currentName) return;
+    await updateFolderName(folderId, nextName);
+    await refreshFolders();
+  }, [
+    clearFolderEditing,
+    editingFolderId,
+    editingFolderName,
+    folderById,
+    refreshFolders
+  ]);
+
+  const commitTextEdit = useCallback(async () => {
+    if (!editingTextId) return;
+    const textId = editingTextId;
+    const nextTitle = editingTextTitle.trim() || DEFAULT_TITLE;
+    const currentTitle = texts.find((text) => text.id === textId)?.title ?? "";
+    clearTextEditing();
+    if (nextTitle === currentTitle) return;
+    applyTitleUpdate(textId, nextTitle);
+    if (selectedTextId === textId) {
+      setTitle(nextTitle);
+      setLastPersistedTitle(nextTitle);
+    }
+    await updateTextTitle(textId, nextTitle);
+    await refreshTexts();
+  }, [
+    applyTitleUpdate,
+    clearTextEditing,
+    editingTextId,
+    editingTextTitle,
+    refreshTexts,
+    selectedTextId,
+    texts
+  ]);
 
   const buildFolderPath = useCallback(
     (folderId: string) => {
@@ -653,8 +724,9 @@ export default function App() {
   );
 
   const handleTextContextMenu = useCallback(
-    async (event: React.MouseEvent, textId: string) => {
+    async (event: React.MouseEvent, text: Text) => {
       event.preventDefault();
+      const textId = text.id;
       const items = [
         {
           text: "Top level",
@@ -677,6 +749,21 @@ export default function App() {
       const menu = await Menu.new({
         items: [
           {
+            text: "Rename",
+            action: () => startEditingText(text)
+          },
+          {
+            text: "Delete",
+            action: () => {
+              setConfirmState({
+                title: "Delete text",
+                message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+                actionLabel: "Delete text",
+                onConfirm: () => handleDeleteText(text.id)
+              });
+            }
+          },
+          {
             text: "Move to folder",
             items
           }
@@ -684,7 +771,35 @@ export default function App() {
       });
       await menu.popup(undefined, getCurrentWindow());
     },
-    [folderPathList, handleMoveTextToFolder]
+    [folderPathList, handleDeleteText, handleMoveTextToFolder, startEditingText]
+  );
+
+  const handleFolderContextMenu = useCallback(
+    async (event: React.MouseEvent, folder: Folder) => {
+      event.preventDefault();
+      const menu = await Menu.new({
+        items: [
+          {
+            text: "Rename",
+            action: () => startEditingFolder(folder)
+          },
+          {
+            text: "Delete",
+            action: () => {
+              setConfirmState({
+                title: "Delete folder",
+                message:
+                  "Delete this folder? Its subfolders and texts will move one level up.",
+                actionLabel: "Delete folder",
+                onConfirm: () => handleDeleteFolder(folder.id)
+              });
+            }
+          }
+        ]
+      });
+      await menu.popup(undefined, getCurrentWindow());
+    },
+    [handleDeleteFolder, startEditingFolder]
   );
 
   const reorderIds = useCallback((ids: string[], draggedId: string, targetId: string) => {
@@ -933,6 +1048,22 @@ export default function App() {
     [refreshTexts, selectedTextId]
   );
 
+  const handleDeleteFolder = useCallback(
+    async (folderId: string) => {
+      await deleteFolder(folderId);
+      await Promise.all([refreshFolders(), refreshTexts()]);
+      setExpandedFolders((prev) => {
+        const next = new Set(prev);
+        next.delete(folderId);
+        return next;
+      });
+      if (editingFolderId === folderId) {
+        clearFolderEditing();
+      }
+    },
+    [clearFolderEditing, editingFolderId, refreshFolders, refreshTexts]
+  );
+
   const handleSaveVersion = useCallback(async () => {
     if (!selectedTextId || !canSave) return;
     const normalizedTitle = title.trim() || DEFAULT_TITLE;
@@ -1176,7 +1307,9 @@ export default function App() {
         !event.altKey &&
         selectedTextId &&
         !settingsOpen &&
-        !confirmState
+        !confirmState &&
+        !editingFolderId &&
+        !editingTextId
       ) {
         event.preventDefault();
         setMarkdownPreview((value) => !value);
@@ -1191,13 +1324,16 @@ export default function App() {
     <div
       key={text.id}
       className={`prompt-item${text.id === selectedTextId ? " is-active" : ""}`}
-      draggable
+      draggable={editingTextId !== text.id}
       onDragStart={(event) => handleDragStartText(event, text)}
       onDragEnd={handleDragEnd}
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => handleTextDrop(event, text.id, parentFolderId)}
-      onClick={() => setSelectedTextId(text.id)}
-      onContextMenu={(event) => handleTextContextMenu(event, text.id)}
+      onClick={() => {
+        if (editingTextId === text.id) return;
+        setSelectedTextId(text.id);
+      }}
+      onContextMenu={(event) => handleTextContextMenu(event, text)}
       role="button"
       tabIndex={0}
       onKeyDown={(event) => {
@@ -1208,7 +1344,39 @@ export default function App() {
       }}
     >
       <div className="prompt-item__content">
-        <div className="prompt-item__title">{text.title}</div>
+        {editingTextId === text.id ? (
+          <input
+            className="prompt-item__input"
+            value={editingTextTitle}
+            onChange={(event) => setEditingTextTitle(event.target.value)}
+            onClick={(event) => event.stopPropagation()}
+            onFocus={(event) => event.currentTarget.select()}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                commitTextEdit().catch((error) => {
+                  console.error("Failed to rename text", error);
+                });
+              } else if (event.key === "Escape") {
+                event.preventDefault();
+                ignoreTextBlurRef.current = true;
+                clearTextEditing();
+              }
+            }}
+            onBlur={() => {
+              if (ignoreTextBlurRef.current) {
+                ignoreTextBlurRef.current = false;
+                return;
+              }
+              commitTextEdit().catch((error) => {
+                console.error("Failed to rename text", error);
+              });
+            }}
+            autoFocus
+          />
+        ) : (
+          <div className="prompt-item__title">{text.title}</div>
+        )}
         <div className="prompt-item__meta">Updated {formatDate(text.updated_at)}</div>
       </div>
       <button
@@ -1240,12 +1408,16 @@ export default function App() {
       <div key={folder.id} className="folder-node">
         <div
           className={`folder-item${expanded ? " is-open" : ""}`}
-          draggable
+          draggable={editingFolderId !== folder.id}
           onDragStart={(event) => handleDragStartFolder(event, folder)}
           onDragEnd={handleDragEnd}
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => handleFolderDrop(event, folder)}
-          onClick={() => toggleFolderExpanded(folder.id)}
+          onClick={() => {
+            if (editingFolderId === folder.id) return;
+            toggleFolderExpanded(folder.id);
+          }}
+          onContextMenu={(event) => handleFolderContextMenu(event, folder)}
         >
           <button
             className="folder-item__toggle"
@@ -1258,7 +1430,39 @@ export default function App() {
           >
             {expanded ? "▾" : "▸"}
           </button>
-          <div className="folder-item__title">{folder.name}</div>
+          {editingFolderId === folder.id ? (
+            <input
+              className="folder-item__input"
+              value={editingFolderName}
+              onChange={(event) => setEditingFolderName(event.target.value)}
+              onClick={(event) => event.stopPropagation()}
+              onFocus={(event) => event.currentTarget.select()}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  commitFolderEdit().catch((error) => {
+                    console.error("Failed to rename folder", error);
+                  });
+                } else if (event.key === "Escape") {
+                  event.preventDefault();
+                  ignoreFolderBlurRef.current = true;
+                  clearFolderEditing();
+                }
+              }}
+              onBlur={() => {
+                if (ignoreFolderBlurRef.current) {
+                  ignoreFolderBlurRef.current = false;
+                  return;
+                }
+                commitFolderEdit().catch((error) => {
+                  console.error("Failed to rename folder", error);
+                });
+              }}
+              autoFocus
+            />
+          ) : (
+            <div className="folder-item__title">{folder.name}</div>
+          )}
         </div>
         {expanded ? (
           <div className="folder-children">
