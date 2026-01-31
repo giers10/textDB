@@ -1190,6 +1190,91 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [confirmState, handleSaveVersion, selectedTextId, settingsOpen]);
 
+  const renderTextItem = (text: Text, depth: number, parentFolderId: string | null) => (
+    <div
+      key={text.id}
+      className={`prompt-item${text.id === selectedTextId ? " is-active" : ""}`}
+      style={{ marginLeft: depth * 12 }}
+      draggable
+      onDragStart={(event) => handleDragStartText(event, text)}
+      onDragEnd={handleDragEnd}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => handleTextDrop(event, text.id, parentFolderId)}
+      onClick={() => setSelectedTextId(text.id)}
+      onContextMenu={(event) => handleTextContextMenu(event, text.id)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setSelectedTextId(text.id);
+        }
+      }}
+    >
+      <div className="prompt-item__content">
+        <div className="prompt-item__title">{text.title}</div>
+        <div className="prompt-item__meta">Updated {formatDate(text.updated_at)}</div>
+      </div>
+      <button
+        className="prompt-item__delete"
+        onClick={(event) => {
+          event.stopPropagation();
+          setConfirmState({
+            title: "Delete text",
+            message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+            actionLabel: "Delete text",
+            onConfirm: () => handleDeleteText(text.id)
+          });
+        }}
+        aria-label="Delete text"
+        title="Delete text"
+      >
+        ×
+      </button>
+    </div>
+  );
+
+  const renderFolder = (folder: Folder, depth: number) => {
+    if (hasSearch && !visibleFolderIds?.has(folder.id)) return null;
+    const expanded = isFolderExpanded(folder.id);
+    const childFolders = foldersByParent.get(folder.id) ?? [];
+    const childTexts = textsByFolder.get(folder.id) ?? [];
+
+    return (
+      <div key={folder.id} className="folder-node">
+        <div
+          className={`folder-item${expanded ? " is-open" : ""}`}
+          style={{ marginLeft: depth * 12 }}
+          draggable
+          onDragStart={(event) => handleDragStartFolder(event, folder)}
+          onDragEnd={handleDragEnd}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => handleFolderDrop(event, folder)}
+          onClick={() => toggleFolderExpanded(folder.id)}
+        >
+          <button
+            className="folder-item__toggle"
+            type="button"
+            aria-label={expanded ? "Collapse folder" : "Expand folder"}
+            onClick={(event) => {
+              event.stopPropagation();
+              toggleFolderExpanded(folder.id);
+            }}
+          >
+            {expanded ? "▾" : "▸"}
+          </button>
+          <div className="folder-item__title">{folder.name}</div>
+        </div>
+        {expanded ? (
+          <div className="folder-children">
+            {childFolders.map((child) => renderFolder(child, depth + 1))}
+            {childTexts.map((text) => renderTextItem(text, depth + 1, folder.id))}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
   return (
     <div className={`app app--theme-${theme}${sidebarCollapsed ? " app--sidebar-collapsed" : ""}`}>
       {!sidebarCollapsed ? (
