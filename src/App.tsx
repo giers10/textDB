@@ -797,6 +797,33 @@ export default function App() {
     [foldersByParent, refreshFolders, refreshTexts, textsByFolder]
   );
 
+  const handleDragStartText = useCallback((event: React.DragEvent, text: Text) => {
+    dragItemRef.current = {
+      type: "text",
+      id: text.id,
+      parentId: text.folder_id ?? null
+    };
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", text.id);
+  }, []);
+
+  const handleDragStartFolder = useCallback(
+    (event: React.DragEvent, folder: Folder) => {
+      dragItemRef.current = {
+        type: "folder",
+        id: folder.id,
+        parentId: folder.parent_id ?? null
+      };
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", folder.id);
+    },
+    []
+  );
+
+  const handleDragEnd = useCallback(() => {
+    dragItemRef.current = null;
+  }, []);
+
   const createTextFromFile = useCallback(
     async (filePath: string) => {
       try {
