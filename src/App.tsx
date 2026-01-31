@@ -1226,56 +1226,529 @@ export default function App() {
           />
         </div>
         <div className="prompt-list">
-          <div className="prompt-list__inner">
-            {loadingTexts ? (
-              <div className="empty">Loading texts…</div>
-            ) : texts.length === 0 ? (
+          <div
+            className="prompt-list__inner"
+            onDragOver={(event) => {
+              event.preventDefault();
+            }}
+            onDrop={handleRootDrop}
+          >
+            {loadingTexts || loadingFolders ? (
+              <div className="empty">Loading…</div>
+            ) : texts.length === 0 && folders.length === 0 ? (
               <div className="empty">No texts yet.</div>
             ) : (
-              texts.map((text) => (
-                <div
-                  key={text.id}
-                  className={`prompt-item${
-                    text.id === selectedTextId ? " is-active" : ""
-                  }`}
-                  onClick={() => setSelectedTextId(text.id)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      setSelectedTextId(text.id);
-                    }
-                  }}
-                >
-                  <div className="prompt-item__content">
-                    <div className="prompt-item__title">{text.title}</div>
-                    <div className="prompt-item__meta">
-                      Updated {formatDate(text.updated_at)}
-                    </div>
-                  </div>
-                  <button
-                    className="prompt-item__delete"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setConfirmState({
-                        title: "Delete text",
-                        message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
-                        actionLabel: "Delete text",
-                        onConfirm: () => handleDeleteText(text.id)
-                      });
-                    }}
-                    aria-label="Delete text"
-                    title="Delete text"
+              <>
+                {(foldersByParent.get(null) ?? [])
+                  .filter((folder) => !hasSearch || visibleFolderIds?.has(folder.id))
+                  .map((folder) => {
+                    const expanded = isFolderExpanded(folder.id);
+                    const childFolders = foldersByParent.get(folder.id) ?? [];
+                    const childTexts = textsByFolder.get(folder.id) ?? [];
+                    return (
+                      <div key={folder.id} className="folder-node">
+                        <div
+                          className={`folder-item${expanded ? " is-open" : ""}`}
+                          draggable
+                          onDragStart={(event) => handleDragStartFolder(event, folder)}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={(event) => event.preventDefault()}
+                          onDrop={(event) => handleFolderDrop(event, folder)}
+                          onClick={() => toggleFolderExpanded(folder.id)}
+                        >
+                          <button
+                            className="folder-item__toggle"
+                            type="button"
+                            aria-label={expanded ? "Collapse folder" : "Expand folder"}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleFolderExpanded(folder.id);
+                            }}
+                          >
+                            {expanded ? "▾" : "▸"}
+                          </button>
+                          <div className="folder-item__title">{folder.name}</div>
+                        </div>
+                        {expanded ? (
+                          <div className="folder-children">
+                            {childFolders
+                              .filter((child) => !hasSearch || visibleFolderIds?.has(child.id))
+                              .map((child) => {
+                                const childExpanded = isFolderExpanded(child.id);
+                                const nestedFolders = foldersByParent.get(child.id) ?? [];
+                                const nestedTexts = textsByFolder.get(child.id) ?? [];
+                                return (
+                                  <div key={child.id} className="folder-node">
+                                    <div
+                                      className={`folder-item${childExpanded ? " is-open" : ""}`}
+                                      draggable
+                                      onDragStart={(event) => handleDragStartFolder(event, child)}
+                                      onDragEnd={handleDragEnd}
+                                      onDragOver={(event) => event.preventDefault()}
+                                      onDrop={(event) => handleFolderDrop(event, child)}
+                                      onClick={() => toggleFolderExpanded(child.id)}
+                                    >
+                                      <button
+                                        className="folder-item__toggle"
+                                        type="button"
+                                        aria-label={childExpanded ? "Collapse folder" : "Expand folder"}
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          toggleFolderExpanded(child.id);
+                                        }}
+                                      >
+                                        {childExpanded ? "▾" : "▸"}
+                                      </button>
+                                      <div className="folder-item__title">{child.name}</div>
+                                    </div>
+                                    {childExpanded ? (
+                                      <div className="folder-children">
+                                        {nestedFolders
+                                          .filter(
+                                            (nested) =>
+                                              !hasSearch || visibleFolderIds?.has(nested.id)
+                                          )
+                                          .map((nested) => (
+                                            <div key={nested.id} className="folder-node">
+                                              <div
+                                                className={`folder-item${
+                                                  isFolderExpanded(nested.id) ? " is-open" : ""
+                                                }`}
+                                                draggable
+                                                onDragStart={(event) =>
+                                                  handleDragStartFolder(event, nested)
+                                                }
+                                                onDragEnd={handleDragEnd}
+                                                onDragOver={(event) => event.preventDefault()}
+                                                onDrop={(event) => handleFolderDrop(event, nested)}
+                                                onClick={() => toggleFolderExpanded(nested.id)}
+                                              >
+                                                <button
+                                                  className="folder-item__toggle"
+                                                  type="button"
+                                                  aria-label={
+                                                    isFolderExpanded(nested.id)
+                                                      ? "Collapse folder"
+                                                      : "Expand folder"
+                                                  }
+                                                  onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    toggleFolderExpanded(nested.id);
+                                                  }}
+                                                >
+                                                  {isFolderExpanded(nested.id) ? "▾" : "▸"}
+                                                </button>
+                                                <div className="folder-item__title">
+                                                  {nested.name}
+                                                </div>
+                                              </div>
+                                              {isFolderExpanded(nested.id) ? (
+                                                <div className="folder-children">
+                                                  {(foldersByParent.get(nested.id) ?? [])
+                                                    .filter(
+                                                      (nestedChild) =>
+                                                        !hasSearch ||
+                                                        visibleFolderIds?.has(nestedChild.id)
+                                                    )
+                                                    .map((nestedChild) => (
+                                                      <div key={nestedChild.id} className="folder-node">
+                                                        <div
+                                                          className={`folder-item${
+                                                            isFolderExpanded(nestedChild.id)
+                                                              ? " is-open"
+                                                              : ""
+                                                          }`}
+                                                          draggable
+                                                          onDragStart={(event) =>
+                                                            handleDragStartFolder(event, nestedChild)
+                                                          }
+                                                          onDragEnd={handleDragEnd}
+                                                          onDragOver={(event) => event.preventDefault()}
+                                                          onDrop={(event) =>
+                                                            handleFolderDrop(event, nestedChild)
+                                                          }
+                                                          onClick={() => toggleFolderExpanded(nestedChild.id)}
+                                                        >
+                                                          <button
+                                                            className="folder-item__toggle"
+                                                            type="button"
+                                                            aria-label={
+                                                              isFolderExpanded(nestedChild.id)
+                                                                ? "Collapse folder"
+                                                                : "Expand folder"
+                                                            }
+                                                            onClick={(event) => {
+                                                              event.stopPropagation();
+                                                              toggleFolderExpanded(nestedChild.id);
+                                                            }}
+                                                          >
+                                                            {isFolderExpanded(nestedChild.id) ? "▾" : "▸"}
+                                                          </button>
+                                                          <div className="folder-item__title">
+                                                            {nestedChild.name}
+                                                          </div>
+                                                        </div>
+                                                        {isFolderExpanded(nestedChild.id) ? (
+                                                          <div className="folder-children">
+                                                            {(foldersByParent.get(nestedChild.id) ?? [])
+                                                              .filter(
+                                                                (deepChild) =>
+                                                                  !hasSearch ||
+                                                                  visibleFolderIds?.has(deepChild.id)
+                                                              )
+                                                              .map((deepChild) => (
+                                                                <div
+                                                                  key={deepChild.id}
+                                                                  className="folder-node"
+                                                                >
+                                                                  <div
+                                                                    className={`folder-item${
+                                                                      isFolderExpanded(deepChild.id)
+                                                                        ? " is-open"
+                                                                        : ""
+                                                                    }`}
+                                                                    draggable
+                                                                    onDragStart={(event) =>
+                                                                      handleDragStartFolder(event, deepChild)
+                                                                    }
+                                                                    onDragEnd={handleDragEnd}
+                                                                    onDragOver={(event) => event.preventDefault()}
+                                                                    onDrop={(event) =>
+                                                                      handleFolderDrop(event, deepChild)
+                                                                    }
+                                                                    onClick={() =>
+                                                                      toggleFolderExpanded(deepChild.id)
+                                                                    }
+                                                                  >
+                                                                    <button
+                                                                      className="folder-item__toggle"
+                                                                      type="button"
+                                                                      aria-label={
+                                                                        isFolderExpanded(deepChild.id)
+                                                                          ? "Collapse folder"
+                                                                          : "Expand folder"
+                                                                      }
+                                                                      onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        toggleFolderExpanded(deepChild.id);
+                                                                      }}
+                                                                    >
+                                                                      {isFolderExpanded(deepChild.id) ? "▾" : "▸"}
+                                                                    </button>
+                                                                    <div className="folder-item__title">
+                                                                      {deepChild.name}
+                                                                    </div>
+                                                                  </div>
+                                                                  {isFolderExpanded(deepChild.id) ? (
+                                                                    <div className="folder-children">
+                                                                      {(textsByFolder.get(deepChild.id) ?? []).map(
+                                                                        (text) => (
+                                                                          <div
+                                                                            key={text.id}
+                                                                            className={`prompt-item${
+                                                                              text.id === selectedTextId
+                                                                                ? " is-active"
+                                                                                : ""
+                                                                            }`}
+                                                                            draggable
+                                                                            onDragStart={(event) =>
+                                                                              handleDragStartText(event, text)
+                                                                            }
+                                                                            onDragEnd={handleDragEnd}
+                                                                            onDragOver={(event) =>
+                                                                              event.preventDefault()
+                                                                            }
+                                                                            onDrop={(event) =>
+                                                                              handleTextDrop(
+                                                                                event,
+                                                                                text.id,
+                                                                                text.folder_id ?? null
+                                                                              )
+                                                                            }
+                                                                            onClick={() =>
+                                                                              setSelectedTextId(text.id)
+                                                                            }
+                                                                            onContextMenu={(event) =>
+                                                                              handleTextContextMenu(event, text.id)
+                                                                            }
+                                                                          >
+                                                                            <div className="prompt-item__content">
+                                                                              <div className="prompt-item__title">
+                                                                                {text.title}
+                                                                              </div>
+                                                                              <div className="prompt-item__meta">
+                                                                                Updated {formatDate(text.updated_at)}
+                                                                              </div>
+                                                                            </div>
+                                                                            <button
+                                                                              className="prompt-item__delete"
+                                                                              onClick={(event) => {
+                                                                                event.stopPropagation();
+                                                                                setConfirmState({
+                                                                                  title: "Delete text",
+                                                                                  message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+                                                                                  actionLabel: "Delete text",
+                                                                                  onConfirm: () =>
+                                                                                    handleDeleteText(text.id)
+                                                                                });
+                                                                              }}
+                                                                              aria-label="Delete text"
+                                                                              title="Delete text"
+                                                                            >
+                                                                              ×
+                                                                            </button>
+                                                                          </div>
+                                                                        )
+                                                                      )}
+                                                                    </div>
+                                                                  ) : null}
+                                                                </div>
+                                                              ))}
+                                                            {(textsByFolder.get(nestedChild.id) ?? []).map(
+                                                              (text) => (
+                                                                <div
+                                                                  key={text.id}
+                                                                  className={`prompt-item${
+                                                                    text.id === selectedTextId ? " is-active" : ""
+                                                                  }`}
+                                                                  draggable
+                                                                  onDragStart={(event) =>
+                                                                    handleDragStartText(event, text)
+                                                                  }
+                                                                  onDragEnd={handleDragEnd}
+                                                                  onDragOver={(event) => event.preventDefault()}
+                                                                  onDrop={(event) =>
+                                                                    handleTextDrop(
+                                                                      event,
+                                                                      text.id,
+                                                                      text.folder_id ?? null
+                                                                    )
+                                                                  }
+                                                                  onClick={() => setSelectedTextId(text.id)}
+                                                                  onContextMenu={(event) =>
+                                                                    handleTextContextMenu(event, text.id)
+                                                                  }
+                                                                >
+                                                                  <div className="prompt-item__content">
+                                                                    <div className="prompt-item__title">
+                                                                      {text.title}
+                                                                    </div>
+                                                                    <div className="prompt-item__meta">
+                                                                      Updated {formatDate(text.updated_at)}
+                                                                    </div>
+                                                                  </div>
+                                                                  <button
+                                                                    className="prompt-item__delete"
+                                                                    onClick={(event) => {
+                                                                      event.stopPropagation();
+                                                                      setConfirmState({
+                                                                        title: "Delete text",
+                                                                        message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+                                                                        actionLabel: "Delete text",
+                                                                        onConfirm: () =>
+                                                                          handleDeleteText(text.id)
+                                                                      });
+                                                                    }}
+                                                                    aria-label="Delete text"
+                                                                    title="Delete text"
+                                                                  >
+                                                                    ×
+                                                                  </button>
+                                                                </div>
+                                                              )
+                                                            )}
+                                                          </div>
+                                                        ) : null}
+                                                      </div>
+                                                    ))}
+                                                  {(textsByFolder.get(nested.id) ?? []).map((text) => (
+                                                    <div
+                                                      key={text.id}
+                                                      className={`prompt-item${
+                                                        text.id === selectedTextId ? " is-active" : ""
+                                                      }`}
+                                                      draggable
+                                                      onDragStart={(event) => handleDragStartText(event, text)}
+                                                      onDragEnd={handleDragEnd}
+                                                      onDragOver={(event) => event.preventDefault()}
+                                                      onDrop={(event) =>
+                                                        handleTextDrop(
+                                                          event,
+                                                          text.id,
+                                                          text.folder_id ?? null
+                                                        )
+                                                      }
+                                                      onClick={() => setSelectedTextId(text.id)}
+                                                      onContextMenu={(event) =>
+                                                        handleTextContextMenu(event, text.id)
+                                                      }
+                                                    >
+                                                      <div className="prompt-item__content">
+                                                        <div className="prompt-item__title">{text.title}</div>
+                                                        <div className="prompt-item__meta">
+                                                          Updated {formatDate(text.updated_at)}
+                                                        </div>
+                                                      </div>
+                                                      <button
+                                                        className="prompt-item__delete"
+                                                        onClick={(event) => {
+                                                          event.stopPropagation();
+                                                          setConfirmState({
+                                                            title: "Delete text",
+                                                            message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+                                                            actionLabel: "Delete text",
+                                                            onConfirm: () => handleDeleteText(text.id)
+                                                          });
+                                                        }}
+                                                        aria-label="Delete text"
+                                                        title="Delete text"
+                                                      >
+                                                        ×
+                                                      </button>
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              ) : null}
+                                            </div>
+                                          ))}
+                                        {nestedTexts.map((text) => (
+                                          <div
+                                            key={text.id}
+                                            className={`prompt-item${
+                                              text.id === selectedTextId ? " is-active" : ""
+                                            }`}
+                                            draggable
+                                            onDragStart={(event) => handleDragStartText(event, text)}
+                                            onDragEnd={handleDragEnd}
+                                            onDragOver={(event) => event.preventDefault()}
+                                            onDrop={(event) =>
+                                              handleTextDrop(
+                                                event,
+                                                text.id,
+                                                text.folder_id ?? null
+                                              )
+                                            }
+                                            onClick={() => setSelectedTextId(text.id)}
+                                            onContextMenu={(event) =>
+                                              handleTextContextMenu(event, text.id)
+                                            }
+                                          >
+                                            <div className="prompt-item__content">
+                                              <div className="prompt-item__title">{text.title}</div>
+                                              <div className="prompt-item__meta">
+                                                Updated {formatDate(text.updated_at)}
+                                              </div>
+                                            </div>
+                                            <button
+                                              className="prompt-item__delete"
+                                              onClick={(event) => {
+                                                event.stopPropagation();
+                                                setConfirmState({
+                                                  title: "Delete text",
+                                                  message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+                                                  actionLabel: "Delete text",
+                                                  onConfirm: () => handleDeleteText(text.id)
+                                                });
+                                              }}
+                                              aria-label="Delete text"
+                                              title="Delete text"
+                                            >
+                                              ×
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                );
+                              })}
+                            {childTexts.map((text) => (
+                              <div
+                                key={text.id}
+                                className={`prompt-item${
+                                  text.id === selectedTextId ? " is-active" : ""
+                                }`}
+                                draggable
+                                onDragStart={(event) => handleDragStartText(event, text)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(event) => event.preventDefault()}
+                                onDrop={(event) =>
+                                  handleTextDrop(event, text.id, text.folder_id ?? null)
+                                }
+                                onClick={() => setSelectedTextId(text.id)}
+                                onContextMenu={(event) => handleTextContextMenu(event, text.id)}
+                              >
+                                <div className="prompt-item__content">
+                                  <div className="prompt-item__title">{text.title}</div>
+                                  <div className="prompt-item__meta">
+                                    Updated {formatDate(text.updated_at)}
+                                  </div>
+                                </div>
+                                <button
+                                  className="prompt-item__delete"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setConfirmState({
+                                      title: "Delete text",
+                                      message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+                                      actionLabel: "Delete text",
+                                      onConfirm: () => handleDeleteText(text.id)
+                                    });
+                                  }}
+                                  aria-label="Delete text"
+                                  title="Delete text"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                {(textsByFolder.get(null) ?? []).map((text) => (
+                  <div
+                    key={text.id}
+                    className={`prompt-item${text.id === selectedTextId ? " is-active" : ""}`}
+                    draggable
+                    onDragStart={(event) => handleDragStartText(event, text)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => handleTextDrop(event, text.id, text.folder_id ?? null)}
+                    onClick={() => setSelectedTextId(text.id)}
+                    onContextMenu={(event) => handleTextContextMenu(event, text.id)}
                   >
-                    ×
-                  </button>
-                </div>
-              ))
+                    <div className="prompt-item__content">
+                      <div className="prompt-item__title">{text.title}</div>
+                      <div className="prompt-item__meta">Updated {formatDate(text.updated_at)}</div>
+                    </div>
+                    <button
+                      className="prompt-item__delete"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setConfirmState({
+                          title: "Delete text",
+                          message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+                          actionLabel: "Delete text",
+                          onConfirm: () => handleDeleteText(text.id)
+                        });
+                      }}
+                      aria-label="Delete text"
+                      title="Delete text"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </>
             )}
           </div>
         </div>
         <div className="sidebar__footer">
+          <button className="button" onClick={handleNewFolder}>
+            New Folder
+          </button>
           <button className="button button--primary" onClick={handleNewText}>
             New Text
           </button>
