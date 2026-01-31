@@ -62,4 +62,4 @@ npm run tauri dev
 - SQLite is loaded via `Database.load("sqlite:text.db")`.
 - The database file is stored in the Tauri app data directory.
 - The app is fully offline by design: no telemetry, no external fonts, no CDNs.
-- UI settings (theme, text size, line numbers, sidebar state, last selected text) are stored in localStorage.
+- UI settings (theme, text size, line numbers, sidebar + folder collapse state, last selected text) are stored in localStorage.
