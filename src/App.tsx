@@ -170,6 +170,19 @@ export default function App() {
     []
   );
 
+  const handlePrintMarkdown = useCallback(() => {
+    if (!markdownPreview) return;
+    document.body.classList.add("print-markdown");
+    const cleanup = () => {
+      document.body.classList.remove("print-markdown");
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+    requestAnimationFrame(() => {
+      window.print();
+    });
+  }, [markdownPreview]);
+
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
     if (isDirty) return "unsaved";
