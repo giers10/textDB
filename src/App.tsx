@@ -162,10 +162,9 @@ export default function App() {
 
   const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
 
-  const lines = useMemo(() => body.split("\n"), [body]);
-
-    return Array.from({ length: count }, (_, index) => index + 1);
-  }, [body]);
+  const lines = useMemo(() => body.split("
+"), [body]);
+  const lineNumbers = useMemo(() => lines.map((_, index) => index + 1), [lines]);
 
   const handleTextareaScroll = useCallback((event: React.UIEvent<HTMLTextAreaElement>) => {
     if (!showLineNumbers) return;
