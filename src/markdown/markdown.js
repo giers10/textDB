@@ -191,22 +191,45 @@ export function markdownToHTML(text) {
   // 6) Convert line-breaks to <br /> for NON-code content (preserve blank lines)
   const linesWithHtml = html.split("\n");
   const htmlLines = [];
+  let emptyCount = 0;
+  let seenNonEmpty = false;
   for (let i = 0; i < linesWithHtml.length; i += 1) {
     const line = linesWithHtml[i] ?? "";
-    const nextLine = i + 1 < linesWithHtml.length ? linesWithHtml[i + 1] : null;
     const isEmpty = line.trim().length === 0;
-    const nextIsEmpty = nextLine !== null ? nextLine.trim().length === 0 : false;
 
     if (isEmpty) {
-      htmlLines.push("<br />");
+      emptyCount += 1;
       continue;
     }
 
+    if (seenNonEmpty) {
+      if (emptyCount === 0) {
+        htmlLines.push("<br />");
+      } else {
+        const extraBreaks = Math.max(0, emptyCount - 1);
+        for (let j = 0; j < extraBreaks; j += 1) {
+          htmlLines.push("<br />");
+        }
+      }
+    } else if (emptyCount > 0) {
+      const extraBreaks = Math.max(0, emptyCount - 1);
+      for (let j = 0; j < extraBreaks; j += 1) {
+        htmlLines.push("<br />");
+      }
+    }
+
+    emptyCount = 0;
     htmlLines.push(line);
-    if (nextLine !== null && !nextIsEmpty) {
+    seenNonEmpty = true;
+  }
+
+  if (emptyCount > 0) {
+    const extraBreaks = Math.max(0, emptyCount - 1);
+    for (let j = 0; j < extraBreaks; j += 1) {
       htmlLines.push("<br />");
     }
   }
+
   html = htmlLines.join("");
 
   // 7) Restore code blocks with header + copy button
