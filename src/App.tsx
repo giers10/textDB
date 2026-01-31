@@ -393,6 +393,48 @@ export default function App() {
     }
   }, []);
 
+  const getNextTextSortOrder = useCallback(
+    (folderId: string | null) => {
+      const list = textsByFolder.get(folderId ?? null) ?? [];
+      const hasManualOrder = list.some((text) => text.sort_order !== null);
+      if (!hasManualOrder) return null;
+      return list.length;
+    },
+    [textsByFolder]
+  );
+
+  const getNextFolderSortOrder = useCallback(
+    (parentId: string | null) => {
+      const list = foldersByParent.get(parentId ?? null) ?? [];
+      const hasManualOrder = list.some((folder) => folder.sort_order !== null);
+      if (!hasManualOrder) return null;
+      return list.length;
+    },
+    [foldersByParent]
+  );
+
+  const isFolderExpanded = useCallback(
+    (folderId: string) => {
+      if (hasSearch) {
+        return visibleFolderIds?.has(folderId) ?? false;
+      }
+      return expandedFolders.has(folderId);
+    },
+    [expandedFolders, hasSearch, visibleFolderIds]
+  );
+
+  const toggleFolderExpanded = useCallback((folderId: string) => {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  }, []);
+
   const refreshVersions = useCallback(async () => {
     if (!selectedTextId || !historyOpen) return;
     const [manualRows, draft] = await Promise.all([
