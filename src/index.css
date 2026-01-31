@@ -899,7 +899,7 @@ body[data-theme="light"] .editor__textarea-wrap:focus-within {
   }
 
   body.print-markdown .markdown-preview {
-    padding: 0;
+    padding: 32px 36px;
     overflow: visible;
   }
 
