@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -91,6 +91,8 @@ export default function App() {
   const [showLineNumbers, setShowLineNumbers] = useState(() => {
     return localStorage.getItem("textdb.lineNumbers") === "true";
   });
+  const [lineHeights, setLineHeights] = useState<number[]>([]);
+  const [measureTick, setMeasureTick] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
   });
@@ -98,6 +100,7 @@ export default function App() {
   const bodyRef = useRef(body);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lineNumbersRef = useRef<HTMLDivElement | null>(null);
+  const measureRef = useRef<HTMLDivElement | null>(null);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
 
@@ -159,8 +162,8 @@ export default function App() {
 
   const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
 
-  const lineNumbers = useMemo(() => {
-    const count = Math.max(body.split("\n").length, 1);
+  const lines = useMemo(() => body.split("\n"), [body]);
+
     return Array.from({ length: count }, (_, index) => index + 1);
   }, [body]);
 
@@ -170,6 +173,32 @@ export default function App() {
       lineNumbersRef.current.scrollTop = event.currentTarget.scrollTop;
     }
   }, [showLineNumbers]);
+
+  useEffect(() => {
+    if (!showLineNumbers) return;
+    const textarea = textareaRef.current;
+    if (!textarea || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      setMeasureTick((tick) => tick + 1);
+    });
+    observer.observe(textarea);
+    return () => observer.disconnect();
+  }, [showLineNumbers]);
+
+  useLayoutEffect(() => {
+    if (!showLineNumbers) return;
+    const textarea = textareaRef.current;
+    const measure = measureRef.current;
+    if (!textarea || !measure) return;
+    measure.style.width = `${textarea.clientWidth}px`;
+    const heights = Array.from(measure.children).map((child) =>
+      Math.ceil((child as HTMLElement).getBoundingClientRect().height)
+    );
+    setLineHeights(heights);
+    if (lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = textarea.scrollTop;
+    }
+  }, [lines, showLineNumbers, textSize, measureTick]);
 
   useEffect(() => {
     if (showLineNumbers && textareaRef.current && lineNumbersRef.current) {
@@ -845,9 +874,22 @@ export default function App() {
 
               <div className="editor__textarea-wrap">
                 {showLineNumbers ? (
+                  <div className="line-measure" ref={measureRef} aria-hidden="true">
+                    {lines.map((line, index) => (
+                      <div key={index} className="line-measure__line">
+                        {line.length > 0 ? line : " "}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {showLineNumbers ? (
                   <div className="line-numbers" ref={lineNumbersRef}>
-                    {lineNumbers.map((line) => (
-                      <div key={line} className="line-numbers__line">
+                    {lineNumbers.map((line, index) => (
+                      <div
+                        key={line}
+                        className="line-numbers__line"
+                        style={{ height: lineHeights[index] ? `${lineHeights[index]}px` : undefined }}
+                      >
                         {line}
                       </div>
                     ))}
