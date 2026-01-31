@@ -422,22 +422,52 @@ body {
   background: #707070;
 }
 
+.editor__textarea-wrap {
+  flex: 1;
+  display: flex;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  overflow: hidden;
+}
+
+.editor__textarea-wrap:focus-within {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.line-numbers {
+  padding: 14px 10px;
+  min-width: 3ch;
+  text-align: right;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--bg-contrast);
+  border-right: 1px solid var(--border);
+  user-select: none;
+  overflow: hidden;
+}
+
+.line-numbers__line {
+  height: 1.5em;
+}
+
 .editor__textarea {
   flex: 1;
   width: 100%;
   resize: none;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  border: none;
   padding: 14px;
   font-family: "SF Mono", "Menlo", "Consolas", monospace;
   font-size: 0.95rem;
-  background: var(--bg-input);
+  line-height: 1.5;
+  background: transparent;
   color: var(--ink);
 }
 
 .editor__textarea:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .editor__footer {
@@ -772,6 +802,16 @@ body {
   font-size: 0.9rem;
 }
 
-body[data-theme="light"] .editor__textarea:focus {
+body[data-theme="light"] .editor__textarea-wrap:focus-within {
   border-color: var(--accent-strong);
+}
+
+.settings-panel__section--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-panel__section--row .settings-panel__label {
+  margin: 0;
 }
