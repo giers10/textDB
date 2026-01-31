@@ -771,3 +771,7 @@ body {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+body[data-theme="light"] .editor__textarea:focus {
+  border-color: var(--accent-strong);
+}
