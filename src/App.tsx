@@ -6,6 +6,7 @@ import { appDataDir } from "@tauri-apps/api/path";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import historyIcon from "./assets/history.png";
+import historyIconBright from "./assets/history_b.png";
 import {
   createText,
   deleteText,
@@ -90,11 +91,24 @@ export default function App() {
   }, [body]);
 
   useEffect(() => {
+    const storedTheme = localStorage.getItem("textdb.theme");
+    if (storedTheme === "light") {
+      setTheme("light");
+    }
+    const storedSize = Number(localStorage.getItem("textdb.textSize"));
+    if (!Number.isNaN(storedSize) && storedSize >= 12 && storedSize <= 18) {
+      setTextSize(storedSize);
+    }
+  }, []);
+
+  useEffect(() => {
     document.body.dataset.theme = theme;
+    localStorage.setItem("textdb.theme", theme);
   }, [theme]);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--base-font-size", `${textSize}px`);
+    localStorage.setItem("textdb.textSize", String(textSize));
   }, [textSize]);
 
   const isViewingHistory = viewingVersion !== null;
@@ -122,6 +136,9 @@ export default function App() {
         return "Saved";
     }
   }, [statusKey]);
+
+  const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
+
 
   const refreshTexts = useCallback(async () => {
     setLoadingTexts(true);
@@ -644,7 +661,7 @@ export default function App() {
                 title="Settings"
                 type="button"
               >
-                <span aria-hidden="true">⚙</span>
+                <span className="icon-button__glyph icon-button__glyph--large" aria-hidden="true">⚙</span>
               </button>
               <button
                 className="icon-button icon-button--ghost"
@@ -777,7 +794,7 @@ export default function App() {
                     title={historyOpen ? "Close history" : "Open history"}
                     type="button"
                   >
-                    <img src={historyIcon} alt="" className="icon-button__img" />
+                    <img src={historyIconSrc} alt="" className="icon-button__img" />
                   </button>
                 </div>
               </div>
