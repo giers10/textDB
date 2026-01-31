@@ -60,6 +60,20 @@
         "contentTypes": [
           "public.plain-text"
         ]
+      },
+      {
+        "ext": [
+          "md"
+        ],
+        "name": "Markdown Document",
+        "description": "Markdown document",
+        "mimeType": "text/markdown",
+        "role": "Editor",
+        "rank": "Default",
+        "contentTypes": [
+          "net.daringfireball.markdown",
+          "public.plain-text"
+        ]
       }
     ]
   }
