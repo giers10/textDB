@@ -1316,7 +1316,7 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [confirmState, handleSaveVersion, selectedTextId, settingsOpen]);
+  }, [confirmState, editingFolderId, editingTextId, handleSaveVersion, selectedTextId, settingsOpen]);
 
   const renderTextItem = (text: Text, parentFolderId: string | null) => (
     <div
