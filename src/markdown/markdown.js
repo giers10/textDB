@@ -189,31 +189,25 @@ export function markdownToHTML(text) {
   });
 
   // 6) Convert line-breaks to <br /> for NON-code content (preserve blank lines)
-  html = html.replace(/\n/g, '<br />');
+  const linesWithHtml = html.split("\n");
+  const htmlLines = [];
+  for (let i = 0; i < linesWithHtml.length; i += 1) {
+    const line = linesWithHtml[i] ?? "";
+    const nextLine = i + 1 < linesWithHtml.length ? linesWithHtml[i + 1] : null;
+    const isEmpty = line.trim().length === 0;
+    const nextIsEmpty = nextLine !== null ? nextLine.trim().length === 0 : false;
 
-  // 6.1) Trim breaks around block elements (headings/lists/etc.) to avoid double spacing
-  const brPattern = "<br\\s*\\/?>";
-  const blockPattern = "(?:h[1-4]|hr|table|ul|ol|blockquote)";
-  html = html
-    .replace(
-      new RegExp(`(${brPattern}\\s*)+(<(?:${blockPattern})\\b[^>]*>)`, "g"),
-      "$2"
-    )
-    .replace(
-      new RegExp(`(<\\/(?:${blockPattern})>)(?:\\s*${brPattern})+`, "g"),
-      "$1"
-    );
+    if (isEmpty) {
+      htmlLines.push("<br />");
+      continue;
+    }
 
-  // 6.2) Trim breaks around code blocks
-  html = html
-    .replace(new RegExp(`${brPattern}\\s*(?=<div class="md-codeblock"\\b)`, "g"), "")
-    .replace(
-      new RegExp(
-        `(<div class="md-codeblock"[^>]*>[\\s\\S]*?<\\/div>)\\s*(?:${brPattern}\\s*)+`,
-        "g"
-      ),
-      "$1"
-    );
+    htmlLines.push(line);
+    if (nextLine !== null && !nextIsEmpty) {
+      htmlLines.push("<br />");
+    }
+  }
+  html = htmlLines.join("");
 
   // 7) Restore code blocks with header + copy button
   html = html.replace(/@@CODEBLOCK(\d+)@@/g, (_, idx) => {
