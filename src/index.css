@@ -236,13 +236,24 @@ body {
   padding: 28px 32px;
   height: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 .workspace__topbar {
+  position: absolute;
+  top: 4px;
+  left: 8px;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  z-index: 5;
+}
+
+.workspace__topbar .icon-button {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  font-size: 0.9rem;
 }
 
 .workspace__content {
