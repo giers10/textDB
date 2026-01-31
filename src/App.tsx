@@ -996,7 +996,7 @@ export default function App() {
                         <button className="button" type="button">
                           Export PDF
                         </button>
-                        <button className="button" type="button">
+                        <button className="button" type="button" onClick={handlePrintMarkdown}>
                           Print
                         </button>
                       </>
