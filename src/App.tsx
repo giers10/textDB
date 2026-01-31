@@ -30,7 +30,6 @@ import {
   searchTexts,
   setFolderOrder,
   setTextOrder,
-  updateFolderName,
   updateTextTitle,
   upsertDraft,
   type Folder,
@@ -1190,11 +1189,10 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [confirmState, handleSaveVersion, selectedTextId, settingsOpen]);
 
-  const renderTextItem = (text: Text, depth: number, parentFolderId: string | null) => (
+  const renderTextItem = (text: Text, parentFolderId: string | null) => (
     <div
       key={text.id}
       className={`prompt-item${text.id === selectedTextId ? " is-active" : ""}`}
-      style={{ marginLeft: depth * 12 }}
       draggable
       onDragStart={(event) => handleDragStartText(event, text)}
       onDragEnd={handleDragEnd}
@@ -1234,7 +1232,7 @@ export default function App() {
     </div>
   );
 
-  const renderFolder = (folder: Folder, depth: number) => {
+  const renderFolder = (folder: Folder) => {
     if (hasSearch && !visibleFolderIds?.has(folder.id)) return null;
     const expanded = isFolderExpanded(folder.id);
     const childFolders = foldersByParent.get(folder.id) ?? [];
@@ -1244,7 +1242,6 @@ export default function App() {
       <div key={folder.id} className="folder-node">
         <div
           className={`folder-item${expanded ? " is-open" : ""}`}
-          style={{ marginLeft: depth * 12 }}
           draggable
           onDragStart={(event) => handleDragStartFolder(event, folder)}
           onDragEnd={handleDragEnd}
@@ -1267,8 +1264,8 @@ export default function App() {
         </div>
         {expanded ? (
           <div className="folder-children">
-            {childFolders.map((child) => renderFolder(child, depth + 1))}
-            {childTexts.map((text) => renderTextItem(text, depth + 1, folder.id))}
+            {childFolders.map((child) => renderFolder(child))}
+            {childTexts.map((text) => renderTextItem(text, folder.id))}
           </div>
         ) : null}
       </div>
@@ -1324,9 +1321,9 @@ export default function App() {
               <div className="empty">No texts yet.</div>
             ) : (
               <>
-                {(foldersByParent.get(null) ?? []).map((folder) => renderFolder(folder, 0))}
+                {(foldersByParent.get(null) ?? []).map((folder) => renderFolder(folder))}
                 {(textsByFolder.get(null) ?? []).map((text) =>
-                  renderTextItem(text, 0, null)
+                  renderTextItem(text, null)
                 )}
               </>
             )}
