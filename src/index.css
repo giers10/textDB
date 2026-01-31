@@ -379,6 +379,15 @@ body {
   display: block;
 }
 
+.icon-button__glyph {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.icon-button__glyph--large {
+  font-size: 1.1rem;
+}
+
 .icon-button:hover {
   border-color: rgba(255, 255, 255, 0.2);
   color: var(--ink);
