@@ -11,9 +11,9 @@ TextDB is a **non-destructive**, completely offline, local-first text editor. It
 - Autosave draft (debounced) that can be safely discarded.
 - History panel listing versions by timestamp (drafts included when present).
 - Export the current text to a `.txt` file.
-- Open `.txt` files to create new entries from file content.
-- Drag and drop `.txt` files onto the window to import them.
-- Registers `.txt` file association for using TextDB as a default editor.
+- Open `.txt` or `.md` files to create new entries from file content.
+- Drag and drop `.txt` or `.md` files onto the window to import them.
+- Registers `.txt` and `.md` file associations for using TextDB as a default editor.
 
 ## Use cases
 
