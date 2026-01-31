@@ -1311,6 +1311,8 @@ export default function App() {
           >
             {loadingTexts || loadingFolders ? (
               <div className="empty">Loading…</div>
+            ) : hasSearch && texts.length === 0 ? (
+              <div className="empty">No matching texts.</div>
             ) : texts.length === 0 && folders.length === 0 ? (
               <div className="empty">No texts yet.</div>
             ) : (
