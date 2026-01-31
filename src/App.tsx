@@ -1174,11 +1174,6 @@ export default function App() {
     <div
       key={text.id}
       className={`prompt-item${text.id === selectedTextId ? " is-active" : ""}`}
-      draggable={editingTextId !== text.id}
-      onDragStart={(event) => handleDragStartText(event, text)}
-      onDragEnd={handleDragEnd}
-      onDragOver={(event) => event.preventDefault()}
-      onDrop={(event) => handleTextDrop(event, text.id, parentFolderId)}
       onClick={() => {
         if (editingTextId === text.id) return;
         setSelectedTextId(text.id);
@@ -1258,11 +1253,6 @@ export default function App() {
       <div key={folder.id} className="folder-node">
         <div
           className={`folder-item${expanded ? " is-open" : ""}`}
-          draggable={editingFolderId !== folder.id}
-          onDragStart={(event) => handleDragStartFolder(event, folder)}
-          onDragEnd={handleDragEnd}
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => handleFolderDrop(event, folder)}
           onClick={() => {
             if (editingFolderId === folder.id) return;
             toggleFolderExpanded(folder.id);
@@ -1362,10 +1352,6 @@ export default function App() {
         <div className="prompt-list">
           <div
             className="prompt-list__inner"
-            onDragOver={(event) => {
-              event.preventDefault();
-            }}
-            onDrop={handleRootDrop}
           >
             {loadingTexts || loadingFolders ? (
               <div className="empty">Loading…</div>
