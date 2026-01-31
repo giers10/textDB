@@ -11,4 +11,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 src-tauri/target/
-src-tauri/gen/
+src-tauri/gen/Cargo.lock
+*.lock
