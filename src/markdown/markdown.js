@@ -203,13 +203,9 @@ export function markdownToHTML(text) {
     }
 
     if (seenNonEmpty) {
-      if (emptyCount === 0) {
+      const breaksToAdd = Math.max(1, emptyCount);
+      for (let j = 0; j < breaksToAdd; j += 1) {
         htmlLines.push("<br />");
-      } else {
-        const extraBreaks = Math.max(0, emptyCount - 1);
-        for (let j = 0; j < extraBreaks; j += 1) {
-          htmlLines.push("<br />");
-        }
       }
     } else if (emptyCount > 0) {
       const extraBreaks = Math.max(0, emptyCount - 1);
