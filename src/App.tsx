@@ -3,6 +3,7 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { writeText as writeClipboardText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { Menu } from "@tauri-apps/api/menu";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appDataDir } from "@tauri-apps/api/path";
 import { listen } from "@tauri-apps/api/event";
