@@ -42,6 +42,10 @@ body {
   min-height: 100vh;
 }
 
+.app--sidebar-collapsed {
+  grid-template-columns: 1fr;
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -59,6 +63,13 @@ body {
   gap: 12px;
   padding-left: 24px;
   padding-right: 24px;
+}
+
+.sidebar__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .sidebar__footer {
@@ -227,6 +238,13 @@ body {
   overflow: hidden;
 }
 
+.workspace__topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .workspace__content {
   display: grid;
   grid-template-columns: 1fr;
@@ -298,6 +316,17 @@ body {
   color: var(--muted);
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.icon-button--ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.icon-button--ghost:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--bg-elevated);
+  color: var(--ink);
 }
 
 .icon-button__img {
