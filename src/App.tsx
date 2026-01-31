@@ -598,6 +598,20 @@ export default function App() {
     setSelectedTextId(textId);
   }, [getNextTextSortOrder, refreshTexts]);
 
+  const handleNewFolder = useCallback(async () => {
+    const name = window.prompt("Folder name");
+    const trimmed = name?.trim();
+    if (!trimmed) return;
+    const sortOrder = getNextFolderSortOrder(null);
+    const { folderId } = await createFolder(trimmed, null, sortOrder);
+    await refreshFolders();
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      next.add(folderId);
+      return next;
+    });
+  }, [getNextFolderSortOrder, refreshFolders]);
+
   const createTextFromFile = useCallback(
     async (filePath: string) => {
       try {
