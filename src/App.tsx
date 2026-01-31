@@ -861,19 +861,15 @@ export default function App() {
           >
             <section className="editor">
               <div className="editor__header">
-                <input
-                  className="title-input"
-                  value={title}
-                  onChange={handleTitleChange}
-                  onBlur={handleTitleBlur}
-                  placeholder="Text title"
-                  disabled={isViewingHistory}
-                />
-                <div className="editor__status-row">
-                  <div className="status-line">
-                    <span className={`status status--${statusKey}`}></span>
-                    {statusLabel}
-                  </div>
+                <div className="editor__title-row">
+                  <input
+                    className="title-input"
+                    value={title}
+                    onChange={handleTitleChange}
+                    onBlur={handleTitleBlur}
+                    placeholder="Text title"
+                    disabled={isViewingHistory}
+                  />
                   <button
                     className={`icon-button${historyOpen ? " is-active" : ""}`}
                     onClick={handleToggleHistory}
@@ -941,6 +937,12 @@ export default function App() {
                     Discard Draft
                   </button>
                 ) : null}
+                <div className="editor__footer-status">
+                  <div className="status-line">
+                    <span className={`status status--${statusKey}`}></span>
+                    {statusLabel}
+                  </div>
+                </div>
                 <button
                   className="button button--primary button--save"
                   onClick={handleSaveVersion}
