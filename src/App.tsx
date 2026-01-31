@@ -132,6 +132,9 @@ export default function App() {
   const measureRef = useRef<HTMLDivElement | null>(null);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
+  const dragItemRef = useRef<{ type: "text" | "folder"; id: string; parentId: string | null } | null>(
+    null
+  );
 
 
   useEffect(() => {
