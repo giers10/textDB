@@ -88,7 +88,9 @@ export default function App() {
     }
     return 16;
   });
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem("textdb.sidebarCollapsed") === "true";
+  });
 
   const bodyRef = useRef(body);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
@@ -109,6 +111,16 @@ export default function App() {
     document.documentElement.style.setProperty("--base-font-size", `${textSize}px`);
     localStorage.setItem("textdb.textSize", String(textSize));
   }, [textSize]);
+
+  useEffect(() => {
+    localStorage.setItem("textdb.sidebarCollapsed", String(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    if (selectedTextId) {
+      localStorage.setItem("textdb.selectedTextId", selectedTextId);
+    }
+  }, [selectedTextId]);
 
   const isViewingHistory = viewingVersion !== null;
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
@@ -186,9 +198,13 @@ export default function App() {
   }, [refreshTexts]);
 
   useEffect(() => {
-    if (!selectedTextId && texts.length > 0) {
-      setSelectedTextId(texts[0].id);
-    }
+    if (selectedTextId || texts.length === 0) return;
+    const storedId = localStorage.getItem("textdb.selectedTextId");
+    const fallback = texts[0].id;
+    const resolved = storedId && texts.some((text) => text.id === storedId)
+      ? storedId
+      : fallback;
+    setSelectedTextId(resolved);
   }, [selectedTextId, texts]);
 
   useEffect(() => {
@@ -229,6 +245,7 @@ export default function App() {
 
       if (!text) {
         setSelectedTextId(null);
+        localStorage.removeItem("textdb.selectedTextId");
         return;
       }
 
@@ -393,6 +410,7 @@ export default function App() {
       await refreshTexts();
       if (selectedTextId === promptId) {
         setSelectedTextId(null);
+        localStorage.removeItem("textdb.selectedTextId");
       }
     },
     [refreshTexts, selectedTextId]
