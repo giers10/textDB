@@ -75,6 +75,9 @@ export default function App() {
   const [viewingVersion, setViewingVersion] = useState<HistoryEntry | null>(null);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [theme, setTheme] = useState<"default" | "light">("default");
+  const [textSize, setTextSize] = useState(16);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const bodyRef = useRef(body);
@@ -85,6 +88,14 @@ export default function App() {
   useEffect(() => {
     bodyRef.current = body;
   }, [body]);
+
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+  }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--base-font-size", `${textSize}px`);
+  }, [textSize]);
 
   const isViewingHistory = viewingVersion !== null;
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
@@ -619,21 +630,32 @@ export default function App() {
   }, [handleSaveVersion]);
 
   return (
-    <div className={`app${sidebarCollapsed ? " app--sidebar-collapsed" : ""}`}>
+    <div className={`app app--theme-${theme}${sidebarCollapsed ? " app--sidebar-collapsed" : ""}`}>
       {!sidebarCollapsed ? (
       <aside className="sidebar">
         <div className="sidebar__header">
           <div className="sidebar__title-row">
             <div className="app-title">TextDB</div>
-            <button
-              className="icon-button icon-button--ghost"
-              onClick={() => setSidebarCollapsed(true)}
-              aria-label="Collapse sidebar"
-              title="Collapse sidebar"
-              type="button"
-            >
-              <span aria-hidden="true">&lt;</span>
-            </button>
+            <div className="sidebar__actions">
+              <button
+                className="icon-button icon-button--ghost"
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Open settings"
+                title="Settings"
+                type="button"
+              >
+                <span aria-hidden="true">⚙</span>
+              </button>
+              <button
+                className="icon-button icon-button--ghost"
+                onClick={() => setSidebarCollapsed(true)}
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+                type="button"
+              >
+                <span aria-hidden="true">&lt;</span>
+              </button>
+            </div>
           </div>
           <input
             className="search"
@@ -883,6 +905,63 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {settingsOpen ? (
+        <div className="settings-overlay">
+          <div
+            className="settings-overlay__backdrop"
+            onClick={() => setSettingsOpen(false)}
+          />
+          <div className="settings-panel" role="dialog" aria-modal="true">
+            <div className="settings-panel__header">
+              <div className="settings-panel__title">Settings</div>
+              <button
+                className="icon-button icon-button--ghost"
+                onClick={() => setSettingsOpen(false)}
+                aria-label="Close settings"
+                title="Close settings"
+                type="button"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div className="settings-panel__section">
+              <label className="settings-panel__label" htmlFor="theme-select">
+                Theme
+              </label>
+              <select
+                id="theme-select"
+                className="settings-panel__select"
+                value={theme}
+                onChange={(event) =>
+                  setTheme(event.target.value as "default" | "light")
+                }
+              >
+                <option value="default">Default</option>
+                <option value="light">Bright</option>
+              </select>
+            </div>
+            <div className="settings-panel__section">
+              <label className="settings-panel__label" htmlFor="text-size">
+                Text size
+              </label>
+              <div className="settings-panel__slider-row">
+                <input
+                  id="text-size"
+                  className="settings-panel__range"
+                  type="range"
+                  min={12}
+                  max={18}
+                  step={1}
+                  value={textSize}
+                  onChange={(event) => setTextSize(Number(event.target.value))}
+                />
+                <div className="settings-panel__value">{textSize}px</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {confirmState ? (
         <div className="modal">
