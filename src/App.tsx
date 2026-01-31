@@ -772,16 +772,31 @@ export default function App() {
     const handleKeyDown = (event: KeyboardEvent) => {
       const isSave =
         (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s";
-      if (!isSave) return;
-      event.preventDefault();
-      handleSaveVersion().catch((error) => {
-        console.error("Failed to save version", error);
-      });
+      if (isSave) {
+        event.preventDefault();
+        handleSaveVersion().catch((error) => {
+          console.error("Failed to save version", error);
+        });
+        return;
+      }
+
+      if (
+        event.key === "Tab" &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        selectedTextId &&
+        !settingsOpen &&
+        !confirmState
+      ) {
+        event.preventDefault();
+        setMarkdownPreview((value) => !value);
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleSaveVersion]);
+  }, [confirmState, handleSaveVersion, selectedTextId, settingsOpen]);
 
   return (
     <div className={`app app--theme-${theme}${sidebarCollapsed ? " app--sidebar-collapsed" : ""}`}>
