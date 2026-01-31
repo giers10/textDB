@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
+import { writeText as writeClipboardText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appDataDir } from "@tauri-apps/api/path";
@@ -143,9 +144,22 @@ export default function App() {
   const hasText = body.trim().length > 0;
   const showLineNumbersActive = showLineNumbers && !markdownPreview;
 
-  const handleMarkdownLinkClick = useCallback(
+  const handleMarkdownPreviewClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       const target = event.target as HTMLElement | null;
+      const copyButton = target?.closest?.(".md-codeblock__copy") as HTMLElement | null;
+      if (copyButton) {
+        event.preventDefault();
+        const encoded = copyButton.getAttribute("data-copy-code") ?? "";
+        const text = decodeURIComponent(encoded);
+        if (!text) return;
+        writeClipboardText(text).catch(() => {
+          if (navigator?.clipboard?.writeText) {
+            navigator.clipboard.writeText(text);
+          }
+        });
+        return;
+      }
       const link = target?.closest?.("a");
       if (!link) return;
       const href = link.getAttribute("href");
@@ -927,7 +941,7 @@ export default function App() {
                   <div
                     className="markdown-preview md-root"
                     dangerouslySetInnerHTML={{ __html: markdownToHTML(body) }}
-                    onClick={handleMarkdownLinkClick}
+                    onClick={handleMarkdownPreviewClick}
                   />
                 ) : (
                   <textarea
