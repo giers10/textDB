@@ -59,6 +59,14 @@ body[data-theme="light"] .md-root {
   font-size: 1.1rem;
 }
 
+.md-paragraph {
+  margin: 0 0 0.9rem;
+}
+
+.md-paragraph:last-child {
+  margin-bottom: 0;
+}
+
 /* Horizontal rule */
 .md-hr {
   border: 0;
