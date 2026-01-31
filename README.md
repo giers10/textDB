@@ -1,6 +1,6 @@
 # TextDB
 
-TextDB is a **non-destructive**, completely offline, local-first text editor with built-in Markdown preview and print. Its core promise is simple: your edits never overwrite your history. Every manual save is immutable and append-only, and autosaves are kept as a separate draft layer. No accounts, no telemetry, no remote fonts, and no network calls.
+TextDB is a **non-destructive**, completely offline, local-first text editor with built-in Markdown preview functionality. Its core promise is simple: your edits never overwrite your history. Every manual save is immutable and append-only, and autosaves are kept as a separate draft layer. No accounts, no telemetry, no remote fonts, and no network calls.
 
 ## Features
 
@@ -9,7 +9,7 @@ TextDB is a **non-destructive**, completely offline, local-first text editor wit
 - Editor with title, content area, and clear save status.
 - Cmd/Ctrl+S creates a new immutable manual version.
 - Markdown preview mode with external link support and printable output.
-- Tab toggles Edit/Preview mode.
+- Pressing Tab toggles Edit/Preview mode.
 - Autosave draft (debounced) that can be safely discarded.
 - History panel listing versions by timestamp (drafts included when present).
 - Settings: theme (default/bright), text size slider, and optional line numbers.
