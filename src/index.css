@@ -178,7 +178,6 @@ body {
 }
 
 .button--save {
-  margin-left: auto;
 }
 
 .prompt-list {
@@ -514,14 +513,10 @@ body {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  position: relative;
 }
 
 .editor__footer-status {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: none;
+  margin-left: auto;
 }
 
 .banner {
