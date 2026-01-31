@@ -77,8 +77,17 @@ export default function App() {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [theme, setTheme] = useState<"default" | "light">("default");
-  const [textSize, setTextSize] = useState(16);
+  const [theme, setTheme] = useState<"default" | "light">(() => {
+    const storedTheme = localStorage.getItem("textdb.theme");
+    return storedTheme === "light" ? "light" : "default";
+  });
+  const [textSize, setTextSize] = useState(() => {
+    const storedSize = Number(localStorage.getItem("textdb.textSize"));
+    if (!Number.isNaN(storedSize) && storedSize >= 12 && storedSize <= 18) {
+      return storedSize;
+    }
+    return 16;
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const bodyRef = useRef(body);
@@ -90,16 +99,6 @@ export default function App() {
     bodyRef.current = body;
   }, [body]);
 
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("textdb.theme");
-    if (storedTheme === "light") {
-      setTheme("light");
-    }
-    const storedSize = Number(localStorage.getItem("textdb.textSize"));
-    if (!Number.isNaN(storedSize) && storedSize >= 12 && storedSize <= 18) {
-      setTextSize(storedSize);
-    }
-  }, []);
 
   useEffect(() => {
     document.body.dataset.theme = theme;
