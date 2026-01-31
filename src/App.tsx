@@ -723,6 +723,34 @@ export default function App() {
     [refreshTexts]
   );
 
+  const handleDeleteText = useCallback(
+    async (promptId: string) => {
+      await deleteText(promptId);
+      await refreshTexts();
+      if (selectedTextId === promptId) {
+        setSelectedTextId(null);
+        localStorage.removeItem("textdb.selectedTextId");
+      }
+    },
+    [refreshTexts, selectedTextId]
+  );
+
+  const handleDeleteFolder = useCallback(
+    async (folderId: string) => {
+      await deleteFolder(folderId);
+      await Promise.all([refreshFolders(), refreshTexts()]);
+      setExpandedFolders((prev) => {
+        const next = new Set(prev);
+        next.delete(folderId);
+        return next;
+      });
+      if (editingFolderId === folderId) {
+        clearFolderEditing();
+      }
+    },
+    [clearFolderEditing, editingFolderId, refreshFolders, refreshTexts]
+  );
+
   const handleTextContextMenu = useCallback(
     async (event: React.MouseEvent, text: Text) => {
       event.preventDefault();
@@ -1035,34 +1063,6 @@ export default function App() {
     if (!path || Array.isArray(path)) return;
     await createTextFromFile(path);
   }, [createTextFromFile]);
-
-  const handleDeleteText = useCallback(
-    async (promptId: string) => {
-      await deleteText(promptId);
-      await refreshTexts();
-      if (selectedTextId === promptId) {
-        setSelectedTextId(null);
-        localStorage.removeItem("textdb.selectedTextId");
-      }
-    },
-    [refreshTexts, selectedTextId]
-  );
-
-  const handleDeleteFolder = useCallback(
-    async (folderId: string) => {
-      await deleteFolder(folderId);
-      await Promise.all([refreshFolders(), refreshTexts()]);
-      setExpandedFolders((prev) => {
-        const next = new Set(prev);
-        next.delete(folderId);
-        return next;
-      });
-      if (editingFolderId === folderId) {
-        clearFolderEditing();
-      }
-    },
-    [clearFolderEditing, editingFolderId, refreshFolders, refreshTexts]
-  );
 
   const handleSaveVersion = useCallback(async () => {
     if (!selectedTextId || !canSave) return;
