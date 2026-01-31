@@ -947,19 +947,11 @@ export default function App() {
 
   const applyTitleUpdate = useCallback((promptId: string, nextTitle: string) => {
     const now = Date.now();
-    setTexts((prev) => {
-      let updated: Text | null = null;
-      const remaining: Text[] = [];
-      for (const text of prev) {
-        if (text.id === promptId) {
-          updated = { ...text, title: nextTitle, updated_at: now };
-        } else {
-          remaining.push(text);
-        }
-      }
-      if (!updated) return prev;
-      return [updated, ...remaining];
-    });
+    setTexts((prev) =>
+      prev.map((text) =>
+        text.id === promptId ? { ...text, title: nextTitle, updated_at: now } : text
+      )
+    );
   }, []);
 
   const handleTitleChange = useCallback(
