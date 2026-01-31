@@ -592,10 +592,11 @@ export default function App() {
   ]);
 
   const handleNewText = useCallback(async () => {
-    const { textId } = await createText(DEFAULT_TITLE, "");
+    const sortOrder = getNextTextSortOrder(null);
+    const { textId } = await createText(DEFAULT_TITLE, "", null, sortOrder);
     await refreshTexts();
     setSelectedTextId(textId);
-  }, [refreshTexts]);
+  }, [getNextTextSortOrder, refreshTexts]);
 
   const createTextFromFile = useCallback(
     async (filePath: string) => {
@@ -603,14 +604,15 @@ export default function App() {
         const filename = filePath.split(/[\/]/).pop() || DEFAULT_TITLE;
         const title = filename.replace(/\.(txt|md)$/i, "") || DEFAULT_TITLE;
         const contents = await readTextFile(filePath);
-        const { textId } = await createText(title, contents);
+        const sortOrder = getNextTextSortOrder(null);
+        const { textId } = await createText(title, contents, null, sortOrder);
         await refreshTexts();
         setSelectedTextId(textId);
       } catch (error) {
         console.error("Failed to open text file", error);
       }
     },
-    [refreshTexts]
+    [getNextTextSortOrder, refreshTexts]
   );
 
   const handleFilePaths = useCallback(
