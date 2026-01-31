@@ -179,7 +179,7 @@ export function markdownToHTML(text) {
     return '';
   };
 
-  html = html.replace(/$begin:math:display$\(\[\^$end:math:display$]+?)\]$begin:math:text$\(\[\^\)\]\+\?\)$end:math:text$/g, (_, label, href) => {
+  html = html.replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, (_, label, href) => {
     const url = safeLink(href);
     const tooltip = escapeHtml(href || '');
     if (!url) return label;
