@@ -305,10 +305,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 24px;
-  border-radius: var(--radius);
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow);
+  /* padding: 24px; */
+  /* border-radius: var(--radius); */
+  /* background: var(--bg-elevated); */
+  /* box-shadow: var(--shadow); */
   min-height: 0;
   height: 100%;
 }
