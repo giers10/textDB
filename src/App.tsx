@@ -887,7 +887,7 @@ export default function App() {
               </div>
 
               <div className="editor__textarea-wrap">
-                {showLineNumbers ? (
+                {showLineNumbersActive ? (
                   <div className="line-measure" ref={measureRef} aria-hidden="true">
                     {lines.map((line, index) => (
                       <div key={index} className="line-measure__line">
@@ -896,7 +896,7 @@ export default function App() {
                     ))}
                   </div>
                 ) : null}
-                {showLineNumbers ? (
+                {showLineNumbersActive ? (
                   <div className="line-numbers" ref={lineNumbersRef}>
                     {lineNumbers.map((line, index) => (
                       <div
@@ -909,22 +909,48 @@ export default function App() {
                     ))}
                   </div>
                 ) : null}
-                <textarea
-                  ref={textareaRef}
-                  className="editor__textarea"
-                  value={body}
-                  onChange={(event) => setBody(event.target.value)}
-                  onScroll={handleTextareaScroll}
-                  placeholder="Write your text here…"
-                  readOnly={isViewingHistory}
-                />
+                {markdownPreview ? (
+                  <div
+                    className="markdown-preview md-root"
+                    dangerouslySetInnerHTML={{ __html: markdownToHTML(body) }}
+                  />
+                ) : (
+                  <textarea
+                    ref={textareaRef}
+                    className="editor__textarea"
+                    value={body}
+                    onChange={(event) => setBody(event.target.value)}
+                    onScroll={handleTextareaScroll}
+                    placeholder="Write your text here…"
+                    readOnly={isViewingHistory}
+                  />
+                )}
               </div>
 
               <div className="editor__footer">
                 {hasText ? (
-                  <button className="button" onClick={handleExportText}>
-                    Export Text
-                  </button>
+                  <>
+                    <button className="button" onClick={handleExportText}>
+                      Export Text
+                    </button>
+                    {markdownPreview ? (
+                      <>
+                        <button className="button" type="button">
+                          Export PDF
+                        </button>
+                        <button className="button" type="button">
+                          Print
+                        </button>
+                      </>
+                    ) : null}
+                    <button
+                      className="button"
+                      type="button"
+                      onClick={() => setMarkdownPreview((value) => !value)}
+                    >
+                      {markdownPreview ? "Edit" : "Preview Markdown"}
+                    </button>
+                  </>
                 ) : null}
                 {hasDraft && !isViewingHistory ? (
                   <button
