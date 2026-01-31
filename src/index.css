@@ -241,7 +241,7 @@ body {
 
 .workspace__topbar {
   position: absolute;
-  top: 4px;
+  top: 24px;
   left: 8px;
   display: flex;
   align-items: center;
