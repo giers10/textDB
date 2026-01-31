@@ -8,6 +8,7 @@
     "sql:default",
     "sql:allow-execute",
     "dialog:default",
+    "clipboard-manager:allow-write-text",
     "shell:allow-open",
     "fs:default",
     "fs:allow-read-text-file",
