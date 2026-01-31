@@ -7,6 +7,8 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import historyIcon from "./assets/history.png";
 import historyIconBright from "./assets/history_b.png";
+import { markdownToHTML } from "./markdown/markdown";
+import "./markdown/markdown-render.css";
 import {
   createText,
   deleteText,
@@ -77,6 +79,7 @@ export default function App() {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [markdownPreview, setMarkdownPreview] = useState(false);
   const [theme, setTheme] = useState<"default" | "light">(() => {
     const storedTheme = localStorage.getItem("textdb.theme");
     return storedTheme === "light" ? "light" : "default";
@@ -137,6 +140,7 @@ export default function App() {
   const isViewingHistory = viewingVersion !== null;
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
   const hasText = body.trim().length > 0;
+  const showLineNumbersActive = showLineNumbers && !markdownPreview;
 
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
@@ -166,14 +170,14 @@ export default function App() {
   const lineNumbers = useMemo(() => lines.map((_, index) => index + 1), [lines]);
 
   const handleTextareaScroll = useCallback((event: React.UIEvent<HTMLTextAreaElement>) => {
-    if (!showLineNumbers) return;
+    if (!showLineNumbersActive) return;
     if (lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = event.currentTarget.scrollTop;
     }
-  }, [showLineNumbers]);
+  }, [showLineNumbersActive]);
 
   useEffect(() => {
-    if (!showLineNumbers) return;
+    if (!showLineNumbersActive) return;
     const textarea = textareaRef.current;
     if (!textarea || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(() => {
@@ -181,10 +185,10 @@ export default function App() {
     });
     observer.observe(textarea);
     return () => observer.disconnect();
-  }, [showLineNumbers]);
+  }, [showLineNumbersActive]);
 
   useEffect(() => {
-    if (!showLineNumbers) return;
+    if (!showLineNumbersActive) return;
     let raf = 0;
     const handleResize = () => {
       if (raf) cancelAnimationFrame(raf);
@@ -197,10 +201,10 @@ export default function App() {
       window.removeEventListener("resize", handleResize);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [showLineNumbers]);
+  }, [showLineNumbersActive]);
 
   useLayoutEffect(() => {
-    if (!showLineNumbers) return;
+    if (!showLineNumbersActive) return;
     const textarea = textareaRef.current;
     const measure = measureRef.current;
     if (!textarea || !measure) return;
@@ -212,13 +216,13 @@ export default function App() {
     if (lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = textarea.scrollTop;
     }
-  }, [lines, showLineNumbers, textSize, measureTick, sidebarCollapsed, historyOpen]);
+  }, [lines, showLineNumbersActive, textSize, measureTick, sidebarCollapsed, historyOpen]);
 
   useEffect(() => {
-    if (showLineNumbers && textareaRef.current && lineNumbersRef.current) {
+    if (showLineNumbersActive && textareaRef.current && lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
     }
-  }, [showLineNumbers, body]);
+  }, [showLineNumbersActive, body]);
 
 
   const refreshTexts = useCallback(async () => {
