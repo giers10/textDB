@@ -78,6 +78,7 @@ export default function App() {
 
   const bodyRef = useRef(body);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
+  const recentOpenRef = useRef(new Map<string, number>());
 
 
   useEffect(() => {
@@ -288,9 +289,18 @@ export default function App() {
 
   const handleFilePaths = useCallback(
     async (paths: string[]) => {
+      const now = Date.now();
       const txtPaths = paths.filter((path) => path.toLowerCase().endsWith(".txt"));
+      const recent = recentOpenRef.current;
       for (const path of txtPaths) {
+        const key = path.toLowerCase();
+        const last = recent.get(key);
+        if (last && now - last < 1000) continue;
+        recent.set(key, now);
         await createTextFromFile(path);
+      }
+      for (const [key, timestamp] of recent.entries()) {
+        if (now - timestamp > 2000) recent.delete(key);
       }
     },
     [createTextFromFile]
