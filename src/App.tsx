@@ -177,6 +177,78 @@ export default function App() {
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
   const hasText = body.trim().length > 0;
   const showLineNumbersActive = showLineNumbers && !markdownPreview;
+  const hasSearch = search.trim().length > 0;
+
+  const sortByOrderThenUpdated = useCallback(
+    <T extends { sort_order: number | null; updated_at: number }>(a: T, b: T) => {
+      const aHasOrder = a.sort_order !== null && a.sort_order !== undefined;
+      const bHasOrder = b.sort_order !== null && b.sort_order !== undefined;
+      if (aHasOrder && bHasOrder) {
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+      }
+      if (aHasOrder !== bHasOrder) {
+        return aHasOrder ? -1 : 1;
+      }
+      return b.updated_at - a.updated_at;
+    },
+    []
+  );
+
+  const folderById = useMemo(() => {
+    const map = new Map<string, Folder>();
+    for (const folder of folders) {
+      map.set(folder.id, folder);
+    }
+    return map;
+  }, [folders]);
+
+  const foldersByParent = useMemo(() => {
+    const map = new Map<string | null, Folder[]>();
+    for (const folder of folders) {
+      const key = folder.parent_id ?? null;
+      const list = map.get(key);
+      if (list) {
+        list.push(folder);
+      } else {
+        map.set(key, [folder]);
+      }
+    }
+    for (const [key, list] of map.entries()) {
+      map.set(key, [...list].sort(sortByOrderThenUpdated));
+    }
+    return map;
+  }, [folders, sortByOrderThenUpdated]);
+
+  const textsByFolder = useMemo(() => {
+    const map = new Map<string | null, Text[]>();
+    for (const text of texts) {
+      const key = text.folder_id ?? null;
+      const list = map.get(key);
+      if (list) {
+        list.push(text);
+      } else {
+        map.set(key, [text]);
+      }
+    }
+    for (const [key, list] of map.entries()) {
+      map.set(key, [...list].sort(sortByOrderThenUpdated));
+    }
+    return map;
+  }, [texts, sortByOrderThenUpdated]);
+
+  const visibleFolderIds = useMemo(() => {
+    if (!hasSearch) return null;
+    const visible = new Set<string>();
+    for (const text of texts) {
+      let current = text.folder_id ?? null;
+      while (current) {
+        if (visible.has(current)) break;
+        visible.add(current);
+        current = folderById.get(current)?.parent_id ?? null;
+      }
+    }
+    return visible;
+  }, [folderById, hasSearch, texts]);
 
   const handleMarkdownPreviewClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
