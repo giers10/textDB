@@ -434,6 +434,10 @@ body {
   overflow: hidden;
 }
 
+.editor__textarea-wrap--preview {
+  border-color: transparent;
+}
+
 .editor__textarea-wrap:focus-within {
   border-color: rgba(255, 255, 255, 0.18);
 }
