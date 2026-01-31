@@ -122,6 +122,10 @@ export default function App() {
   }, [sidebarCollapsed]);
 
   useEffect(() => {
+    localStorage.setItem("textdb.lineNumbers", String(showLineNumbers));
+  }, [showLineNumbers]);
+
+  useEffect(() => {
     if (selectedTextId) {
       localStorage.setItem("textdb.selectedTextId", selectedTextId);
     }
@@ -156,8 +160,7 @@ export default function App() {
   const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
 
   const lineNumbers = useMemo(() => {
-    const count = Math.max(body.split("
-").length, 1);
+    const count = Math.max(body.split("\n").length, 1);
     return Array.from({ length: count }, (_, index) => index + 1);
   }, [body]);
 
