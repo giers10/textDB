@@ -72,8 +72,7 @@ const MIGRATIONS = [
   "CREATE INDEX IF NOT EXISTS idx_prompt_versions_prompt_time ON prompt_versions(prompt_id, created_at DESC);",
   "CREATE INDEX IF NOT EXISTS idx_prompts_updated ON prompts(updated_at DESC);",
   "CREATE INDEX IF NOT EXISTS idx_folders_parent ON folders(parent_id);",
-  "CREATE INDEX IF NOT EXISTS idx_folders_updated ON folders(updated_at DESC);",
-  "CREATE INDEX IF NOT EXISTS idx_prompts_folder ON prompts(folder_id);"
+  "CREATE INDEX IF NOT EXISTS idx_folders_updated ON folders(updated_at DESC);"
 ];
 
 let dbPromise: Promise<Database> | null = null;
@@ -84,6 +83,7 @@ async function migrate(db: Database) {
   }
   await ensureColumn(db, "prompts", "folder_id", "TEXT REFERENCES folders(id) ON DELETE SET NULL");
   await ensureColumn(db, "prompts", "sort_order", "INTEGER");
+  await db.execute("CREATE INDEX IF NOT EXISTS idx_prompts_folder ON prompts(folder_id);");
 }
 
 async function ensureColumn(
