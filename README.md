@@ -14,6 +14,9 @@ TextDB is a **non-destructive**, completely offline, local-first text editor wit
 - History panel listing versions by timestamp (drafts included when present).
 - Settings: theme (default/bright), text size slider, and optional line numbers.
 - Collapsible sidebar with persistent state.
+- Nested folders (projects) with expandable tree view.
+- Drag & drop to reorder texts/folders or move texts into folders.
+- Right-click a text to move it into a folder.
 - Export the current text to a `.txt` file.
 - Open `.txt` or `.md` files to create new entries from file content.
 - Drag and drop `.txt` or `.md` files onto the window to import them.
