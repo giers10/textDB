@@ -74,6 +74,8 @@ export default function App() {
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [loadingTexts, setLoadingTexts] = useState(true);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [loadingFolders, setLoadingFolders] = useState(true);
 
   const [title, setTitle] = useState("");
   const [lastPersistedTitle, setLastPersistedTitle] = useState("");
@@ -91,6 +93,19 @@ export default function App() {
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [markdownPreview, setMarkdownPreview] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(() => {
+    const stored = localStorage.getItem("textdb.expandedFolders");
+    if (!stored) return new Set();
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        return new Set(parsed.filter((value) => typeof value === "string"));
+      }
+    } catch {
+      return new Set();
+    }
+    return new Set();
+  });
   const [theme, setTheme] = useState<"default" | "light">(() => {
     const storedTheme = localStorage.getItem("textdb.theme");
     return storedTheme === "light" ? "light" : "default";
