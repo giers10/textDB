@@ -1,20 +1,26 @@
-:root {
-  /* Core tokens */
-  --md-border-color: #e0e0e0;
-  --md-surface: #f8f8f8;
-  --md-surface-alt: #fdfdfd;
+/* Scoped tokens to avoid bleeding into the app */
+.md-root {
+  --md-border-color: var(--border);
+  --md-surface: var(--bg-contrast);
+  --md-surface-alt: var(--bg-input);
   --md-radius: 12px;
 
-  --md-text-color: #111;
-  --md-muted-color: #555;
-  --md-link-color: #0a66c2;
-  --md-link-hover-color: #004182;
+  --md-text-color: var(--ink);
+  --md-muted-color: var(--muted);
+  --md-link-color: #5aa2ff;
+  --md-link-hover-color: #7bb6ff;
 
-  --md-code-bg: #fdfdfd;
-  --md-code-inline-bg: #f3f3f3;
+  --md-code-bg: var(--bg-contrast);
+  --md-code-inline-bg: rgba(255, 255, 255, 0.08);
 
   --md-code-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
+}
+
+body[data-theme="light"] .md-root {
+  --md-link-color: #0a66c2;
+  --md-link-hover-color: #004182;
+  --md-code-inline-bg: rgba(0, 0, 0, 0.06);
 }
 
 /* Optional wrapper if you choose to wrap markdown output:
@@ -134,7 +140,7 @@
   border: 1px solid var(--md-border-color);
   border-radius: var(--md-radius);
   overflow: hidden;
-  background: #fff;
+  background: var(--md-surface-alt);
 }
 
 .md-codeblock__header {
@@ -161,13 +167,13 @@
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--md-border-color);
   border-radius: 8px;
-  background: #fff;
+  background: var(--md-surface-alt);
   color: var(--md-text-color);
   cursor: pointer;
 }
 
 .md-codeblock__copy:hover {
-  background: #f3f3f3;
+  background: var(--md-surface);
 }
 
 .md-codeblock__copy:active {
@@ -243,8 +249,8 @@ code:not(.md-codeblock__code) {
   top: 100%;
   margin-top: 0.35rem;
   padding: 0.35rem 0.5rem;
-  background: #111;
-  color: #fff;
+  background: var(--bg-contrast-strong);
+  color: var(--md-text-color);
   border-radius: 6px;
   font-size: 0.75rem;
   white-space: nowrap;
