@@ -25,12 +25,9 @@ import {
   listFolders,
   listTexts,
   listVersions,
-  moveFolder,
   moveTextToFolder,
   saveManualVersion,
   searchTexts,
-  setFolderOrder,
-  setTextOrder,
   updateFolderName,
   updateTextTitle,
   upsertDraft,
@@ -138,9 +135,6 @@ export default function App() {
   const measureRef = useRef<HTMLDivElement | null>(null);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
-  const dragItemRef = useRef<{ type: "text" | "folder"; id: string; parentId: string | null } | null>(
-    null
-  );
   const ignoreTextBlurRef = useRef(false);
   const ignoreFolderBlurRef = useRef(false);
 
@@ -827,148 +821,6 @@ export default function App() {
     },
     [handleDeleteFolder, startEditingFolder]
   );
-
-  const reorderIds = useCallback((ids: string[], draggedId: string, targetId: string) => {
-    const next = ids.filter((id) => id !== draggedId);
-    const targetIndex = next.indexOf(targetId);
-    const insertIndex = targetIndex === -1 ? next.length : targetIndex;
-    next.splice(insertIndex, 0, draggedId);
-    return next;
-  }, []);
-
-  const isDescendantFolder = useCallback(
-    (folderId: string, potentialAncestorId: string) => {
-      let current: string | null = folderId;
-      while (current) {
-        if (current === potentialAncestorId) return true;
-        current = folderById.get(current)?.parent_id ?? null;
-      }
-      return false;
-    },
-    [folderById]
-  );
-
-  const handleTextDrop = useCallback(
-    async (event: React.DragEvent, targetTextId: string, targetFolderId: string | null) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const dragItem = dragItemRef.current;
-      if (!dragItem || dragItem.type !== "text") return;
-      const currentList = textsByFolder.get(targetFolderId ?? null) ?? [];
-      let ids = currentList.map((text) => text.id);
-      if (!ids.includes(dragItem.id)) {
-        const targetIndex = ids.indexOf(targetTextId);
-        ids.splice(targetIndex === -1 ? ids.length : targetIndex, 0, dragItem.id);
-      } else {
-        ids = reorderIds(ids, dragItem.id, targetTextId);
-      }
-      await moveTextToFolder(dragItem.id, targetFolderId, 0);
-      await setTextOrder(ids);
-      await refreshTexts();
-      dragItemRef.current = null;
-    },
-    [refreshTexts, reorderIds, textsByFolder]
-  );
-
-  const handleFolderDrop = useCallback(
-    async (event: React.DragEvent, targetFolder: Folder) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const dragItem = dragItemRef.current;
-      if (!dragItem) return;
-
-      if (dragItem.type === "text") {
-        const list = textsByFolder.get(targetFolder.id) ?? [];
-        const ids = list.map((text) => text.id);
-        if (!ids.includes(dragItem.id)) {
-          ids.push(dragItem.id);
-        }
-        await moveTextToFolder(dragItem.id, targetFolder.id, 0);
-        await setTextOrder(ids);
-        await refreshTexts();
-        dragItemRef.current = null;
-        return;
-      }
-
-      if (dragItem.type === "folder") {
-        if (dragItem.id === targetFolder.id) return;
-        if (isDescendantFolder(targetFolder.id, dragItem.id)) return;
-        const sameParent = dragItem.parentId === targetFolder.parent_id;
-        if (sameParent) {
-          const siblings = foldersByParent.get(targetFolder.parent_id ?? null) ?? [];
-          const ids = siblings.map((folder) => folder.id);
-          const next = reorderIds(ids, dragItem.id, targetFolder.id);
-          await setFolderOrder(next);
-          await refreshFolders();
-        } else {
-          const children = foldersByParent.get(targetFolder.id) ?? [];
-          const ids = children.map((folder) => folder.id);
-          ids.push(dragItem.id);
-          await moveFolder(dragItem.id, targetFolder.id, 0);
-          await setFolderOrder(ids);
-          await refreshFolders();
-        }
-        dragItemRef.current = null;
-      }
-    },
-    [foldersByParent, isDescendantFolder, refreshFolders, refreshTexts, reorderIds, textsByFolder]
-  );
-
-  const handleRootDrop = useCallback(
-    async (event: React.DragEvent) => {
-      event.preventDefault();
-      const dragItem = dragItemRef.current;
-      if (!dragItem) return;
-      if (dragItem.type === "text") {
-        const list = textsByFolder.get(null) ?? [];
-        const ids = list.map((text) => text.id);
-        if (!ids.includes(dragItem.id)) {
-          ids.push(dragItem.id);
-        }
-        await moveTextToFolder(dragItem.id, null, 0);
-        await setTextOrder(ids);
-        await refreshTexts();
-      } else if (dragItem.type === "folder") {
-        const list = foldersByParent.get(null) ?? [];
-        const ids = list.map((folder) => folder.id);
-        if (!ids.includes(dragItem.id)) {
-          ids.push(dragItem.id);
-        }
-        await moveFolder(dragItem.id, null, 0);
-        await setFolderOrder(ids);
-        await refreshFolders();
-      }
-      dragItemRef.current = null;
-    },
-    [foldersByParent, refreshFolders, refreshTexts, textsByFolder]
-  );
-
-  const handleDragStartText = useCallback((event: React.DragEvent, text: Text) => {
-    dragItemRef.current = {
-      type: "text",
-      id: text.id,
-      parentId: text.folder_id ?? null
-    };
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", text.id);
-  }, []);
-
-  const handleDragStartFolder = useCallback(
-    (event: React.DragEvent, folder: Folder) => {
-      dragItemRef.current = {
-        type: "folder",
-        id: folder.id,
-        parentId: folder.parent_id ?? null
-      };
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", folder.id);
-    },
-    []
-  );
-
-  const handleDragEnd = useCallback(() => {
-    dragItemRef.current = null;
-  }, []);
 
   const createTextFromFile = useCallback(
     async (filePath: string) => {
