@@ -360,24 +360,6 @@ body {
   position: relative;
 }
 
-.folder-children > * {
-  position: relative;
-}
-
-.folder-children > *::after {
-  content: "";
-  position: absolute;
-  left: -12px;
-  top: -10px;
-  bottom: -10px;
-  width: 2px;
-  background: var(--tree-line);
-}
-
-.folder-children > :last-child::after {
-  bottom: 50%;
-}
-
 .folder-children .folder-item::before,
 .folder-children .prompt-item::before {
   content: "";
@@ -388,6 +370,22 @@ body {
   height: 2px;
   background: var(--tree-line);
   transform: translateY(-50%);
+}
+
+.folder-children .folder-item::after,
+.folder-children .prompt-item::after {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: -10px;
+  bottom: -10px;
+  width: 2px;
+  background: var(--tree-line);
+}
+
+.folder-children > :last-child .folder-item::after,
+.folder-children > :last-child .prompt-item::after {
+  bottom: 50%;
 }
 
 .workspace {
