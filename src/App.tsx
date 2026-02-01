@@ -1412,12 +1412,12 @@ export default function App() {
           <div className="sidebar__footer">
             <button
               className="icon-button"
-              onClick={handleNewFolder}
-              aria-label="New folder"
-              title="New folder"
+              onClick={handleOpenText}
+              aria-label="Open text"
+              title="Open text"
               type="button"
             >
-              <img src={newFolderIconSrc} alt="" className="icon-button__img" />
+              <img src={openFileIconSrc} alt="" className="icon-button__img" />
             </button>
             <button
               className="icon-button"
@@ -1430,12 +1430,12 @@ export default function App() {
             </button>
             <button
               className="icon-button"
-              onClick={handleOpenText}
-              aria-label="Open text"
-              title="Open text"
+              onClick={handleNewFolder}
+              aria-label="New folder"
+              title="New folder"
               type="button"
             >
-              <img src={openFileIconSrc} alt="" className="icon-button__img" />
+              <img src={newFolderIconSrc} alt="" className="icon-button__img" />
             </button>
             <button
               className="icon-button"
