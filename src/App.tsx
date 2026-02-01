@@ -1362,26 +1362,6 @@ export default function App() {
         <div className="sidebar__header">
           <div className="sidebar__title-row">
             <div className="app-title">TextDB</div>
-            <div className="sidebar__actions">
-              <button
-                className="icon-button icon-button--ghost"
-                onClick={() => setSettingsOpen(true)}
-                aria-label="Open settings"
-                title="Settings"
-                type="button"
-              >
-                <span className="icon-button__glyph icon-button__glyph--large" aria-hidden="true">⚙</span>
-              </button>
-              <button
-                className="icon-button icon-button--ghost"
-                onClick={() => setSidebarCollapsed(true)}
-                aria-label="Collapse sidebar"
-                title="Collapse sidebar"
-                type="button"
-              >
-                <span aria-hidden="true">&lt;</span>
-              </button>
-            </div>
           </div>
           <input
             className="search"
@@ -1412,14 +1392,50 @@ export default function App() {
           </div>
         </div>
         <div className="sidebar__footer">
-          <button className="button" onClick={handleNewFolder}>
-            New Folder
+          <button
+            className="icon-button"
+            onClick={handleNewFolder}
+            aria-label="New folder"
+            title="New folder"
+            type="button"
+          >
+            <span className="icon-button__glyph" aria-hidden="true">📁</span>
           </button>
-          <button className="button button--primary" onClick={handleNewText}>
-            New Text
+          <button
+            className="icon-button"
+            onClick={handleNewText}
+            aria-label="New text"
+            title="New text"
+            type="button"
+          >
+            <span className="icon-button__glyph" aria-hidden="true">✚</span>
           </button>
-          <button className="button" onClick={handleOpenText}>
-            Open Text
+          <button
+            className="icon-button"
+            onClick={handleOpenText}
+            aria-label="Open text"
+            title="Open text"
+            type="button"
+          >
+            <span className="icon-button__glyph" aria-hidden="true">⤓</span>
+          </button>
+          <button
+            className="icon-button"
+            onClick={() => setSettingsOpen(true)}
+            aria-label="Open settings"
+            title="Settings"
+            type="button"
+          >
+            <span className="icon-button__glyph icon-button__glyph--large" aria-hidden="true">⚙</span>
+          </button>
+          <button
+            className="icon-button"
+            onClick={() => setSidebarCollapsed(true)}
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+            type="button"
+          >
+            <span className="icon-button__glyph" aria-hidden="true">◀</span>
           </button>
         </div>
       </aside>
