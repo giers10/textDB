@@ -157,20 +157,18 @@ export default function App() {
   });
 
   const bodyRef = useRef(body);
-  const editorHostRef = useRef<HTMLDivElement | null>(null);
   const editorViewRef = useRef<EditorView | null>(null);
   const editorValueRef = useRef("");
   const lineNumbersCompartmentRef = useRef(new Compartment());
   const editableCompartmentRef = useRef(new Compartment());
+  const tabKeymapCompartmentRef = useRef(new Compartment());
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
   const ignoreTextBlurRef = useRef(false);
   const ignoreFolderBlurRef = useRef(false);
 
 
-  useEffect(() => {
-    bodyRef.current = body;
-  }, [body]);
+  bodyRef.current = body;
 
 
   useEffect(() => {
@@ -204,17 +202,24 @@ export default function App() {
     }
   }, [selectedTextId]);
 
-  useEffect(() => {
-    const host = editorHostRef.current;
-    if (!host || editorViewRef.current) return;
+  const editorHostRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) {
+      if (editorViewRef.current) {
+        editorViewRef.current.destroy();
+        editorViewRef.current = null;
+      }
+      return;
+    }
+    if (editorViewRef.current) return;
     const state = EditorState.create({
-      doc: body,
+      doc: bodyRef.current,
       extensions: [
         EditorView.lineWrapping,
         history(),
         keymap.of([...defaultKeymap, ...historyKeymap]),
         lineNumbersCompartmentRef.current.of([]),
         editableCompartmentRef.current.of(EditorView.editable.of(true)),
+        tabKeymapCompartmentRef.current.of([]),
         EditorView.updateListener.of((update) => {
           if (!update.docChanged) return;
           const value = update.state.doc.toString();
@@ -225,14 +230,10 @@ export default function App() {
     });
     const view = new EditorView({
       state,
-      parent: host
+      parent: node
     });
     editorViewRef.current = view;
-    editorValueRef.current = body;
-    return () => {
-      view.destroy();
-      editorViewRef.current = null;
-    };
+    editorValueRef.current = bodyRef.current;
   }, []);
 
   const isViewingHistory = viewingVersion !== null;
@@ -389,6 +390,32 @@ export default function App() {
       )
     });
   }, [isViewingHistory, markdownPreview]);
+
+  useEffect(() => {
+    const view = editorViewRef.current;
+    if (!view) return;
+    const keys = keymap.of([
+      {
+        key: "Tab",
+        run: () => {
+          if (
+            !selectedTextId ||
+            settingsOpen ||
+            confirmState ||
+            editingFolderId ||
+            editingTextId
+          ) {
+            return false;
+          }
+          setMarkdownPreview((value) => !value);
+          return true;
+        }
+      }
+    ]);
+    view.dispatch({
+      effects: tabKeymapCompartmentRef.current.reconfigure(keys)
+    });
+  }, [confirmState, editingFolderId, editingTextId, selectedTextId, settingsOpen]);
 
   useEffect(() => {
     const view = editorViewRef.current;
