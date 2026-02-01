@@ -7,7 +7,6 @@ export type Text = {
   updated_at: number;
   last_saved_version_id: string | null;
   folder_id: string | null;
-  sort_order: number | null;
 };
 
 export type Folder = {
@@ -16,7 +15,6 @@ export type Folder = {
   parent_id: string | null;
   created_at: number;
   updated_at: number;
-  sort_order: number | null;
 };
 
 export type TextVersion = {
@@ -43,7 +41,6 @@ const MIGRATIONS = [
     parent_id TEXT,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
-    sort_order INTEGER,
     FOREIGN KEY(parent_id) REFERENCES folders(id)
   );`,
   `CREATE TABLE IF NOT EXISTS prompts(
@@ -51,7 +48,8 @@ const MIGRATIONS = [
     title TEXT NOT NULL,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
-    last_saved_version_id TEXT
+    last_saved_version_id TEXT,
+    folder_id TEXT REFERENCES folders(id) ON DELETE SET NULL
   );`,
   `CREATE TABLE IF NOT EXISTS prompt_versions(
     id TEXT PRIMARY KEY,
@@ -82,8 +80,8 @@ async function migrate(db: Database) {
     await db.execute(statement);
   }
   await ensureColumn(db, "prompts", "folder_id", "TEXT REFERENCES folders(id) ON DELETE SET NULL");
-  await ensureColumn(db, "prompts", "sort_order", "INTEGER");
   await db.execute("CREATE INDEX IF NOT EXISTS idx_prompts_folder ON prompts(folder_id);");
+  await dropSortOrderColumns(db);
 }
 
 async function ensureColumn(
@@ -97,6 +95,75 @@ async function ensureColumn(
   );
   if (columns.some((col) => col.name === column)) return;
   await db.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
+async function hasColumn(db: Database, table: string, column: string) {
+  const columns = await db.select<{ name: string }[]>(
+    `PRAGMA table_info(${table})`
+  );
+  return columns.some((col) => col.name === column);
+}
+
+async function dropSortOrderColumns(db: Database) {
+  const promptsHasSort = await hasColumn(db, "prompts", "sort_order");
+  const foldersHasSort = await hasColumn(db, "folders", "sort_order");
+  if (!promptsHasSort && !foldersHasSort) return;
+
+  await db.execute("PRAGMA foreign_keys = OFF");
+  await db.execute("BEGIN TRANSACTION");
+  try {
+    if (foldersHasSort) {
+      await db.execute("DROP TABLE IF EXISTS folders_new");
+      await db.execute(`
+        CREATE TABLE folders_new(
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          parent_id TEXT,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          FOREIGN KEY(parent_id) REFERENCES folders(id)
+        );
+      `);
+      await db.execute(`
+        INSERT INTO folders_new(id, name, parent_id, created_at, updated_at)
+        SELECT id, name, parent_id, created_at, updated_at FROM folders
+      `);
+      await db.execute("DROP TABLE folders");
+      await db.execute("ALTER TABLE folders_new RENAME TO folders");
+    }
+
+    if (promptsHasSort) {
+      await db.execute("DROP TABLE IF EXISTS prompts_new");
+      await db.execute(`
+        CREATE TABLE prompts_new(
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL,
+          last_saved_version_id TEXT,
+          folder_id TEXT REFERENCES folders(id) ON DELETE SET NULL
+        );
+      `);
+      await db.execute(`
+        INSERT INTO prompts_new(id, title, created_at, updated_at, last_saved_version_id, folder_id)
+        SELECT id, title, created_at, updated_at, last_saved_version_id, folder_id FROM prompts
+      `);
+      await db.execute("DROP TABLE prompts");
+      await db.execute("ALTER TABLE prompts_new RENAME TO prompts");
+    }
+
+    await db.execute("COMMIT");
+  } catch (error) {
+    await db.execute("ROLLBACK");
+    throw error;
+  } finally {
+    await db.execute("PRAGMA foreign_keys = ON");
+  }
+
+  await db.execute("CREATE INDEX IF NOT EXISTS idx_prompts_updated ON prompts(updated_at DESC);");
+  await db.execute("CREATE INDEX IF NOT EXISTS idx_prompts_folder ON prompts(folder_id);");
+  await db.execute("CREATE INDEX IF NOT EXISTS idx_folders_parent ON folders(parent_id);");
+  await db.execute("CREATE INDEX IF NOT EXISTS idx_folders_updated ON folders(updated_at DESC);");
 }
 
 export async function getDb(): Promise<Database> {
@@ -118,10 +185,7 @@ export async function listTexts(): Promise<Text[]> {
   const db = await getDb();
   const rows = await db.select<Text[]>(
     `SELECT * FROM prompts
-     ORDER BY
-       CASE WHEN sort_order IS NULL THEN 1 ELSE 0 END,
-       sort_order ASC,
-       updated_at DESC`
+     ORDER BY updated_at DESC`
   );
   return rows;
 }
@@ -139,10 +203,7 @@ export async function searchTexts(term: string): Promise<Text[]> {
           WHERE v.prompt_id = p.id
             AND LOWER(v.body) LIKE $1
         )
-     ORDER BY
-       CASE WHEN p.sort_order IS NULL THEN 1 ELSE 0 END,
-       p.sort_order ASC,
-       p.updated_at DESC`,
+     ORDER BY p.updated_at DESC`,
     [normalized]
   );
   return rows;
@@ -190,8 +251,7 @@ export async function getDraft(promptId: string): Promise<TextDraft | null> {
 export async function createText(
   title: string,
   body: string,
-  folderId: string | null = null,
-  sortOrder: number | null = null
+  folderId: string | null = null
 ): Promise<{ textId: string; versionId: string; createdAt: number }> {
   const db = await getDb();
   const now = Date.now();
@@ -199,8 +259,8 @@ export async function createText(
   const versionId = crypto.randomUUID();
 
   await db.execute(
-    "INSERT INTO prompts(id, title, created_at, updated_at, last_saved_version_id, folder_id, sort_order) VALUES($1, $2, $3, $4, $5, $6, $7)",
-    [textId, title, now, now, versionId, folderId, sortOrder]
+    "INSERT INTO prompts(id, title, created_at, updated_at, last_saved_version_id, folder_id) VALUES($1, $2, $3, $4, $5, $6)",
+    [textId, title, now, now, versionId, folderId]
   );
 
   await db.execute(
@@ -217,24 +277,20 @@ export async function listFolders(): Promise<Folder[]> {
   const db = await getDb();
   return db.select<Folder[]>(
     `SELECT * FROM folders
-     ORDER BY
-       CASE WHEN sort_order IS NULL THEN 1 ELSE 0 END,
-       sort_order ASC,
-       updated_at DESC`
+     ORDER BY updated_at DESC`
   );
 }
 
 export async function createFolder(
   name: string,
-  parentId: string | null = null,
-  sortOrder: number | null = null
+  parentId: string | null = null
 ): Promise<{ folderId: string; createdAt: number }> {
   const db = await getDb();
   const now = Date.now();
   const folderId = crypto.randomUUID();
   await db.execute(
-    "INSERT INTO folders(id, name, parent_id, created_at, updated_at, sort_order) VALUES($1, $2, $3, $4, $5, $6)",
-    [folderId, name, parentId, now, now, sortOrder]
+    "INSERT INTO folders(id, name, parent_id, created_at, updated_at) VALUES($1, $2, $3, $4, $5)",
+    [folderId, name, parentId, now, now]
   );
   return { folderId, createdAt: now };
 }
@@ -250,32 +306,14 @@ export async function updateFolderName(folderId: string, name: string) {
 
 export async function moveFolder(
   folderId: string,
-  parentId: string | null,
-  sortOrder: number | null = null
+  parentId: string | null
 ) {
   const db = await getDb();
   const now = Date.now();
   await db.execute(
-    "UPDATE folders SET parent_id = $1, sort_order = $2, updated_at = $3 WHERE id = $4",
-    [parentId, sortOrder, now, folderId]
+    "UPDATE folders SET parent_id = $1, updated_at = $2 WHERE id = $3",
+    [parentId, now, folderId]
   );
-}
-
-export async function setFolderOrder(folderIds: string[]) {
-  const db = await getDb();
-  await db.execute("BEGIN TRANSACTION");
-  try {
-    for (let i = 0; i < folderIds.length; i += 1) {
-      await db.execute("UPDATE folders SET sort_order = $1 WHERE id = $2", [
-        i,
-        folderIds[i]
-      ]);
-    }
-    await db.execute("COMMIT");
-  } catch (error) {
-    await db.execute("ROLLBACK");
-    throw error;
-  }
 }
 
 export async function deleteFolder(folderId: string) {
@@ -300,32 +338,14 @@ export async function deleteFolder(folderId: string) {
 
 export async function moveTextToFolder(
   textId: string,
-  folderId: string | null,
-  sortOrder: number | null = null
+  folderId: string | null
 ) {
   const db = await getDb();
   const now = Date.now();
   await db.execute(
-    "UPDATE prompts SET folder_id = $1, sort_order = $2, updated_at = $3 WHERE id = $4",
-    [folderId, sortOrder, now, textId]
+    "UPDATE prompts SET folder_id = $1, updated_at = $2 WHERE id = $3",
+    [folderId, now, textId]
   );
-}
-
-export async function setTextOrder(textIds: string[]) {
-  const db = await getDb();
-  await db.execute("BEGIN TRANSACTION");
-  try {
-    for (let i = 0; i < textIds.length; i += 1) {
-      await db.execute("UPDATE prompts SET sort_order = $1 WHERE id = $2", [
-        i,
-        textIds[i]
-      ]);
-    }
-    await db.execute("COMMIT");
-  } catch (error) {
-    await db.execute("ROLLBACK");
-    throw error;
-  }
 }
 export async function saveManualVersion(
   promptId: string,
