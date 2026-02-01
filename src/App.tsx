@@ -1473,44 +1473,21 @@ export default function App() {
                   markdownPreview ? " editor__textarea-wrap--preview" : ""
                 }`}
               >
-                {showLineNumbersActive ? (
-                  <div className="line-numbers" ref={lineNumbersRef}>
-                    <div
-                      className="line-numbers__inner"
-                      style={{ height: totalLineNumberHeight ? `${totalLineNumberHeight}px` : undefined }}
-                    >
-                      {visibleLineNumbers.map((item) => (
-                        <div
-                          key={item.line}
-                          className="line-numbers__line"
-                          style={{
-                            top: `${item.top}px`,
-                            height: `${item.height || defaultLineHeight}px`
-                          }}
-                        >
-                          {item.line}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-                {markdownPreview ? (
-                  <div
-                    className="markdown-preview md-root"
-                    dangerouslySetInnerHTML={{ __html: markdownToHTML(body) }}
-                    onClick={handleMarkdownPreviewClick}
-                  />
-                ) : (
-                  <textarea
-                    ref={textareaRef}
-                    className="editor__textarea"
-                    value={body}
-                    onChange={(event) => setBody(event.target.value)}
-                    onScroll={handleTextareaScroll}
-                    placeholder="Write your text here…"
-                    readOnly={isViewingHistory}
-                  />
-                )}
+                <textarea
+                  ref={textareaRef}
+                  id="editor-textarea"
+                  className={`editor__textarea${markdownPreview ? " editor__textarea--hidden" : ""}`}
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                  onScroll={handleTextareaScroll}
+                  placeholder="Write your text here…"
+                  readOnly={isViewingHistory || markdownPreview}
+                />
+                <div
+                  className={`markdown-preview md-root${markdownPreview ? "" : " markdown-preview--hidden"}`}
+                  dangerouslySetInnerHTML={{ __html: markdownToHTML(body) }}
+                  onClick={handleMarkdownPreviewClick}
+                />
               </div>
 
               <div className="editor__footer">
