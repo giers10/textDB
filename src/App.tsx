@@ -8,7 +8,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appDataDir } from "@tauri-apps/api/path";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { Compartment, EditorState, Transaction, Prec } from "@codemirror/state";
+import { Compartment, EditorState, Transaction } from "@codemirror/state";
 import {
   EditorView,
   keymap,
