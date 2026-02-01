@@ -609,7 +609,7 @@ body:not([data-theme="light"]) .folder-item {
   height: 100%;
   background: transparent;
   color: var(--ink);
-  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-family: inherit;
   font-size: var(--base-font-size);
   line-height: 1.5;
 }
