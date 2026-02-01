@@ -8,10 +8,22 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appDataDir } from "@tauri-apps/api/path";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import historyIcon from "./assets/history.png";
-import historyIconBright from "./assets/history_b.png";
 import folderIcon from "../src-tauri/icons/folder.png";
 import folderIconBright from "../src-tauri/icons/folder_b.png";
+import historyIcon from "../src-tauri/icons/history.png";
+import historyIconBright from "../src-tauri/icons/history_b.png";
+import newFolderIcon from "../src-tauri/icons/new_folder.png";
+import newFolderIconBright from "../src-tauri/icons/new_folder_b.png";
+import newTextIcon from "../src-tauri/icons/new_text.png";
+import newTextIconBright from "../src-tauri/icons/new_text_b.png";
+import openFileIcon from "../src-tauri/icons/open_file.png";
+import openFileIconBright from "../src-tauri/icons/open_file_b.png";
+import settingsIcon from "../src-tauri/icons/settings.png";
+import settingsIconBright from "../src-tauri/icons/settings_b.png";
+import sidebarCollapseIcon from "../src-tauri/icons/sb_collapse.png";
+import sidebarCollapseIconBright from "../src-tauri/icons/sb_collapse_b.png";
+import sidebarExpandIcon from "../src-tauri/icons/sb_expand.png";
+import sidebarExpandIconBright from "../src-tauri/icons/sb_expand_b.png";
 import { markdownToHTML } from "./markdown/markdown";
 import "./markdown/markdown-render.css";
 import {
@@ -302,6 +314,14 @@ export default function App() {
 
   const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
   const folderIconSrc = theme === "light" ? folderIconBright : folderIcon;
+  const newFolderIconSrc = theme === "light" ? newFolderIconBright : newFolderIcon;
+  const newTextIconSrc = theme === "light" ? newTextIconBright : newTextIcon;
+  const openFileIconSrc = theme === "light" ? openFileIconBright : openFileIcon;
+  const settingsIconSrc = theme === "light" ? settingsIconBright : settingsIcon;
+  const sidebarCollapseIconSrc =
+    theme === "light" ? sidebarCollapseIconBright : sidebarCollapseIcon;
+  const sidebarExpandIconSrc =
+    theme === "light" ? sidebarExpandIconBright : sidebarExpandIcon;
 
   const lines = useMemo(() => body.split("\n"), [body]);
   const lineNumbers = useMemo(() => lines.map((_, index) => index + 1), [lines]);
