@@ -8,7 +8,15 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appDataDir } from "@tauri-apps/api/path";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { appendLineNumbers, refreshLineNumbers, removeLineNumbers } from "./lib/tln";
+import { Compartment, EditorState, Transaction } from "@codemirror/state";
+import {
+  EditorView,
+  keymap,
+  lineNumbers,
+  highlightActiveLineGutter
+} from "@codemirror/view";
+import { history, historyKeymap } from "@codemirror/history";
+import { defaultKeymap } from "@codemirror/commands";
 import folderIcon from "../src-tauri/icons/folder.png";
 import folderIconBright from "../src-tauri/icons/folder_b.png";
 import historyIcon from "../src-tauri/icons/history.png";
