@@ -318,7 +318,7 @@ body:not([data-theme="light"]) .folder-item {
 .folder-item__lead {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 1px;
 }
 
 .folder-item__icon {
