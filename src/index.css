@@ -1021,9 +1021,7 @@ body[data-theme="light"] .editor__textarea-wrap:focus-within {
   body.print-markdown .sidebar,
   body.print-markdown .history,
   body.print-markdown .editor__header,
-  body.print-markdown .editor__footer,
-  body.print-markdown .line-numbers,
-  body.print-markdown .line-measure {
+  body.print-markdown .editor__footer {
     display: none !important;
   }
 
