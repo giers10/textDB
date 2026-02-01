@@ -570,11 +570,6 @@ export default function App() {
   const handleNewFolder = useCallback(async () => {
     const { folderId } = await createFolder(DEFAULT_FOLDER_NAME, null);
     await refreshFolders();
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      next.add(folderId);
-      return next;
-    });
     setEditingTextId(null);
     setEditingTextTitle("");
     setEditingFolderId(folderId);
@@ -687,6 +682,13 @@ export default function App() {
     async (textId: string, folderId: string | null) => {
       await moveTextToFolder(textId, folderId);
       await refreshTexts();
+      if (folderId) {
+        setExpandedFolders((prev) => {
+          const next = new Set(prev);
+          next.add(folderId);
+          return next;
+        });
+      }
     },
     [refreshTexts]
   );
