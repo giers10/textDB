@@ -308,6 +308,24 @@ export default function App() {
     return map;
   }, [folders, hasSearch, texts, visibleFolderIds]);
 
+  const folderChildCount = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const folder of folders) {
+      if (!folder.parent_id) continue;
+      counts.set(folder.parent_id, (counts.get(folder.parent_id) ?? 0) + 1);
+    }
+    for (const text of texts) {
+      if (!text.folder_id) continue;
+      counts.set(text.folder_id, (counts.get(text.folder_id) ?? 0) + 1);
+    }
+    return counts;
+  }, [folders, texts]);
+
+  const isFolderEmpty = useCallback(
+    (folderId: string) => (folderChildCount.get(folderId) ?? 0) === 0,
+    [folderChildCount]
+  );
+
   const handleMarkdownPreviewClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       const target = event.target as HTMLElement | null;
