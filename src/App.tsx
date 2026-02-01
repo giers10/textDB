@@ -287,10 +287,10 @@ export default function App() {
     () => (markdownPreview ? markdownToHTML(body) : ""),
     [body, markdownPreview]
   );
-  const normalizedOllamaUrl = useMemo(
-    () => ollamaUrl.trim().replace(/\/+$/, ""),
-    [ollamaUrl]
-  );
+  const normalizedOllamaUrl = useMemo(() => {
+    const trimmed = ollamaUrl.trim();
+    return (trimmed || DEFAULT_OLLAMA_URL).replace(/\/+$/, "");
+  }, [ollamaUrl]);
 
   const folderById = useMemo(() => {
     const map = new Map<string, Folder>();
