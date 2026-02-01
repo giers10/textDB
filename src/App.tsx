@@ -182,18 +182,8 @@ export default function App() {
   const showLineNumbersActive = showLineNumbers && !markdownPreview;
   const hasSearch = search.trim().length > 0;
 
-  const sortByOrderThenUpdated = useCallback(
-    <T extends { sort_order: number | null; updated_at: number }>(a: T, b: T) => {
-      const aHasOrder = a.sort_order !== null && a.sort_order !== undefined;
-      const bHasOrder = b.sort_order !== null && b.sort_order !== undefined;
-      if (aHasOrder && bHasOrder) {
-        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-      }
-      if (aHasOrder !== bHasOrder) {
-        return aHasOrder ? -1 : 1;
-      }
-      return b.updated_at - a.updated_at;
-    },
+  const sortByUpdated = useCallback(
+    <T extends { updated_at: number }>(a: T, b: T) => b.updated_at - a.updated_at,
     []
   );
 
@@ -217,10 +207,10 @@ export default function App() {
       }
     }
     for (const [key, list] of map.entries()) {
-      map.set(key, [...list].sort(sortByOrderThenUpdated));
+      map.set(key, [...list].sort(sortByUpdated));
     }
     return map;
-  }, [folders, sortByOrderThenUpdated]);
+  }, [folders, sortByUpdated]);
 
   const textsByFolder = useMemo(() => {
     const map = new Map<string | null, Text[]>();
@@ -234,10 +224,10 @@ export default function App() {
       }
     }
     for (const [key, list] of map.entries()) {
-      map.set(key, [...list].sort(sortByOrderThenUpdated));
+      map.set(key, [...list].sort(sortByUpdated));
     }
     return map;
-  }, [texts, sortByOrderThenUpdated]);
+  }, [texts, sortByUpdated]);
 
   const visibleFolderIds = useMemo(() => {
     if (!hasSearch) return null;
