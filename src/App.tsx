@@ -392,10 +392,10 @@ export default function App() {
     if (!view) return;
     view.dispatch({
       effects: editableCompartmentRef.current.reconfigure(
-        EditorView.editable.of(!isViewingHistory && !markdownPreview)
+        EditorView.editable.of(!isViewingHistory && (!markdownPreview || splitView))
       )
     });
-  }, [editorReady, isViewingHistory, markdownPreview]);
+  }, [editorReady, isViewingHistory, markdownPreview, splitView]);
 
 
   useEffect(() => {
