@@ -420,7 +420,7 @@ export default function App() {
     };
     loadModels();
     return () => controller.abort();
-  }, [normalizedOllamaUrl, ollamaModel, settingsOpen]);
+  }, [normalizedOllamaUrl, settingsOpen]);
 
   const handlePrintMarkdown = useCallback(() => {
     if (!markdownPreview) return;
