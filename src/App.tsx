@@ -136,9 +136,12 @@ export default function App() {
     }
     return new Set();
   });
-  const [theme, setTheme] = useState<"default" | "light">(() => {
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
     const storedTheme = localStorage.getItem("textdb.theme");
-    return storedTheme === "light" ? "light" : "default";
+    if (storedTheme === "dark" || storedTheme === "light") {
+      return storedTheme;
+    }
+    return storedTheme === "default" ? "dark" : "dark";
   });
   const [textSize, setTextSize] = useState(() => {
     const storedSize = Number(localStorage.getItem("textdb.textSize"));
