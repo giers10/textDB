@@ -72,7 +72,7 @@ body {
 }
 
 .app--sidebar-collapsed {
-  grid-template-columns: 60px 1fr;
+  grid-template-columns: 1fr;
 }
 
 .sidebar {
@@ -120,12 +120,6 @@ body {
 .sidebar__footer .icon-button {
   width: 36px;
   height: 36px;
-}
-
-.sidebar__footer--collapsed {
-  margin-top: 0;
-  padding: 0;
-  justify-content: flex-start;
 }
 
 .app-title {
