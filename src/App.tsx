@@ -688,7 +688,7 @@ export default function App() {
 
   const handleMoveTextToFolder = useCallback(
     async (textId: string, folderId: string | null) => {
-      await moveTextToFolder(textId, folderId, null);
+      await moveTextToFolder(textId, folderId);
       await refreshTexts();
     },
     [refreshTexts]
@@ -696,7 +696,7 @@ export default function App() {
 
   const handleMoveFolderToFolder = useCallback(
     async (folderId: string, parentId: string | null) => {
-      await moveFolder(folderId, parentId, null);
+      await moveFolder(folderId, parentId);
       await refreshFolders();
       if (parentId) {
         setExpandedFolders((prev) => {
