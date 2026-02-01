@@ -15,8 +15,8 @@ TextDB is a **non-destructive**, completely offline, local-first text editor wit
 - Settings: theme (default/bright), text size slider, and optional line numbers.
 - Collapsible sidebar with persistent state.
 - Nested folders (projects) with expandable tree view.
-- Drag & drop to reorder texts/folders or move texts into folders.
-- Right-click a text to move it into a folder.
+- Right-click a text or folder to move it into another folder.
+- Deleting a folder moves its contents one level up (never deletes texts).
 - Export the current text to a `.txt` file.
 - Open `.txt` or `.md` files to create new entries from file content.
 - Drag and drop `.txt` or `.md` files onto the window to import them.
