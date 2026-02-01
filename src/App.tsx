@@ -360,7 +360,82 @@ export default function App() {
     theme === "light" ? sidebarExpandIconBright : sidebarExpandIcon;
 
   const lines = useMemo(() => body.split("\n"), [body]);
-  const lineNumbers = useMemo(() => lines.map((_, index) => index + 1), [lines]);
+  const lineCount = lines.length;
+
+  const getLineTop = useCallback(
+    (index: number) => {
+      if (!defaultLineHeight) return 0;
+      return index * defaultLineHeight + fenwickRef.current.sum(index);
+    },
+    [defaultLineHeight, lineNumbersVersion]
+  );
+
+  const getTotalHeight = useCallback(() => {
+    if (!defaultLineHeight) return 0;
+    return lineCount * defaultLineHeight + fenwickRef.current.sum(lineCount);
+  }, [defaultLineHeight, lineCount, lineNumbersVersion]);
+
+  const findLineAtOffset = useCallback(
+    (offset: number) => {
+      if (!defaultLineHeight || lineCount === 0) return 0;
+      let low = 0;
+      let high = lineCount;
+      while (low < high) {
+        const mid = Math.floor((low + high) / 2);
+        if (getLineTop(mid + 1) <= offset) {
+          low = mid + 1;
+        } else {
+          high = mid;
+        }
+      }
+      return Math.min(Math.max(0, low), Math.max(0, lineCount - 1));
+    },
+    [defaultLineHeight, getLineTop, lineCount]
+  );
+
+  const updateVisibleRange = useCallback(() => {
+    if (!showLineNumbersActive || !defaultLineHeight) return;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const scrollTop = textarea.scrollTop;
+    const viewportHeight = textarea.clientHeight;
+    const start = findLineAtOffset(scrollTop);
+    const end = findLineAtOffset(scrollTop + viewportHeight);
+    const buffer = 8;
+    const nextStart = Math.max(0, start - buffer);
+    const nextEnd = Math.min(lineCount - 1, end + buffer);
+    setVisibleRange((prev) =>
+      prev.start === nextStart && prev.end === nextEnd
+        ? prev
+        : { start: nextStart, end: nextEnd }
+    );
+  }, [defaultLineHeight, findLineAtOffset, lineCount, showLineNumbersActive]);
+
+  const totalLineNumberHeight = useMemo(
+    () => (showLineNumbersActive ? getTotalHeight() : 0),
+    [getTotalHeight, showLineNumbersActive]
+  );
+
+  const visibleLineNumbers = useMemo(() => {
+    if (!showLineNumbersActive || visibleRange.end < visibleRange.start) return [];
+    const items: { line: number; top: number; height: number }[] = [];
+    for (let i = visibleRange.start; i <= visibleRange.end; i += 1) {
+      const height = lineHeightsRef.current[i] || defaultLineHeight || 0;
+      items.push({
+        line: i + 1,
+        top: getLineTop(i),
+        height
+      });
+    }
+    return items;
+  }, [
+    defaultLineHeight,
+    getLineTop,
+    lineNumbersVersion,
+    showLineNumbersActive,
+    visibleRange.end,
+    visibleRange.start
+  ]);
 
   const handleTextareaScroll = useCallback((event: React.UIEvent<HTMLTextAreaElement>) => {
     if (!showLineNumbersActive) return;
