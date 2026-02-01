@@ -94,6 +94,12 @@ type SidebarEntry =
 
 const DEFAULT_TITLE = "Untitled Text";
 const DEFAULT_FOLDER_NAME = "New Folder";
+const DEFAULT_OLLAMA_URL = "http://localhost:11434";
+const DEFAULT_OLLAMA_PROMPT = `Convert the following plain text into well-formatted Markdown.
+Do not change or omit any content.
+Only add Markdown structure (such as headings, lists, code blocks, tables, quotes, links, bold, italics, etc.) where appropriate, based on the meaning and structure of the original text.
+Keep the content itself unaltered and do not translate, summarize or rephrase. Only use your Markdown-formatting skills.
+Text:`;
 
 export default function App() {
   const [texts, setTexts] = useState<Text[]>([]);
@@ -158,6 +164,19 @@ export default function App() {
     const stored = localStorage.getItem("textdb.splitView");
     return stored === null ? true : stored === "true";
   });
+  const [ollamaUrl, setOllamaUrl] = useState(() => {
+    return localStorage.getItem("textdb.ollamaUrl") || DEFAULT_OLLAMA_URL;
+  });
+  const [ollamaModel, setOllamaModel] = useState(() => {
+    return localStorage.getItem("textdb.ollamaModel") || "";
+  });
+  const [ollamaPrompt, setOllamaPrompt] = useState(() => {
+    return localStorage.getItem("textdb.ollamaPrompt") || DEFAULT_OLLAMA_PROMPT;
+  });
+  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
+  const [ollamaLoading, setOllamaLoading] = useState(false);
+  const [ollamaError, setOllamaError] = useState<string | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
   });
@@ -198,6 +217,18 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("textdb.splitView", String(splitView));
   }, [splitView]);
+
+  useEffect(() => {
+    localStorage.setItem("textdb.ollamaUrl", ollamaUrl);
+  }, [ollamaUrl]);
+
+  useEffect(() => {
+    localStorage.setItem("textdb.ollamaModel", ollamaModel);
+  }, [ollamaModel]);
+
+  useEffect(() => {
+    localStorage.setItem("textdb.ollamaPrompt", ollamaPrompt);
+  }, [ollamaPrompt]);
 
   useEffect(() => {
     localStorage.setItem(
@@ -255,6 +286,10 @@ export default function App() {
   const markdownHtml = useMemo(
     () => (markdownPreview ? markdownToHTML(body) : ""),
     [body, markdownPreview]
+  );
+  const normalizedOllamaUrl = useMemo(
+    () => ollamaUrl.trim().replace(/\/+$/, ""),
+    [ollamaUrl]
   );
 
   const folderById = useMemo(() => {
