@@ -850,15 +850,14 @@ export default function App() {
         const filename = filePath.split(/[\/]/).pop() || DEFAULT_TITLE;
         const title = filename.replace(/\.(txt|md)$/i, "") || DEFAULT_TITLE;
         const contents = await readTextFile(filePath);
-        const sortOrder = getNextTextSortOrder(null);
-        const { textId } = await createText(title, contents, null, sortOrder);
+        const { textId } = await createText(title, contents, null);
         await refreshTexts();
         setSelectedTextId(textId);
       } catch (error) {
         console.error("Failed to open text file", error);
       }
     },
-    [getNextTextSortOrder, refreshTexts]
+    [refreshTexts]
   );
 
   const handleFilePaths = useCallback(
