@@ -386,28 +386,6 @@ export default function App() {
     }
   }, []);
 
-  const getNextTextSortOrder = useCallback(
-    (folderId: string | null) => {
-      if (hasSearch) return null;
-      const list = textsByFolder.get(folderId ?? null) ?? [];
-      const hasManualOrder = list.some((text) => text.sort_order !== null);
-      if (!hasManualOrder) return null;
-      return list.length;
-    },
-    [hasSearch, textsByFolder]
-  );
-
-  const getNextFolderSortOrder = useCallback(
-    (parentId: string | null) => {
-      if (hasSearch) return null;
-      const list = foldersByParent.get(parentId ?? null) ?? [];
-      const hasManualOrder = list.some((folder) => folder.sort_order !== null);
-      if (!hasManualOrder) return null;
-      return list.length;
-    },
-    [foldersByParent, hasSearch]
-  );
-
   const isFolderExpanded = useCallback(
     (folderId: string) => {
       if (hasSearch) {
