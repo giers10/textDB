@@ -1785,6 +1785,14 @@ export default function App() {
                           : "Edit"
                         : "Preview Markdown"}
                     </button>
+                    <button
+                      className="button"
+                      type="button"
+                      onClick={handleConvertToMarkdown}
+                      disabled={!ollamaModel || isConverting || isViewingHistory}
+                    >
+                      {isConverting ? "Converting…" : "Convert to Markdown"}
+                    </button>
                     <button className="button" onClick={handleExportText}>
                       Export Text
                     </button>
