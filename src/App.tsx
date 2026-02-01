@@ -203,6 +203,37 @@ export default function App() {
     }
   }, [selectedTextId]);
 
+  useEffect(() => {
+    const host = editorHostRef.current;
+    if (!host || editorViewRef.current) return;
+    const state = EditorState.create({
+      doc: body,
+      extensions: [
+        EditorView.lineWrapping,
+        history(),
+        keymap.of([...defaultKeymap, ...historyKeymap]),
+        lineNumbersCompartmentRef.current.of([]),
+        editableCompartmentRef.current.of(EditorView.editable.of(true)),
+        EditorView.updateListener.of((update) => {
+          if (!update.docChanged) return;
+          const value = update.state.doc.toString();
+          editorValueRef.current = value;
+          setBody(value);
+        })
+      ]
+    });
+    const view = new EditorView({
+      state,
+      parent: host
+    });
+    editorViewRef.current = view;
+    editorValueRef.current = body;
+    return () => {
+      view.destroy();
+      editorViewRef.current = null;
+    };
+  }, []);
+
   const isViewingHistory = viewingVersion !== null;
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
   const hasText = body.trim().length > 0;
