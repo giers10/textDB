@@ -1693,24 +1693,28 @@ export default function App() {
               >
                 {showLineNumbersActive ? (
                   <div className="line-measure" ref={measureRef} aria-hidden="true">
-                    {lines.map((line, index) => (
-                      <div key={index} className="line-measure__line">
-                        {line.length > 0 ? line : " "}
-                      </div>
-                    ))}
+                    <div className="line-measure__line" ref={measureLineRef} />
                   </div>
                 ) : null}
                 {showLineNumbersActive ? (
                   <div className="line-numbers" ref={lineNumbersRef}>
-                    {lineNumbers.map((line, index) => (
-                      <div
-                        key={line}
-                        className="line-numbers__line"
-                        style={{ height: lineHeights[index] ? `${lineHeights[index]}px` : undefined }}
-                      >
-                        {line}
-                      </div>
-                    ))}
+                    <div
+                      className="line-numbers__inner"
+                      style={{ height: totalLineNumberHeight ? `${totalLineNumberHeight}px` : undefined }}
+                    >
+                      {visibleLineNumbers.map((item) => (
+                        <div
+                          key={item.line}
+                          className="line-numbers__line"
+                          style={{
+                            top: `${item.top}px`,
+                            height: `${item.height || defaultLineHeight}px`
+                          }}
+                        >
+                          {item.line}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
                 {markdownPreview ? (
