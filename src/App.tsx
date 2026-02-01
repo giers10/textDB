@@ -1233,6 +1233,7 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       const isSave =
         (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s";
       if (isSave) {
@@ -1254,6 +1255,8 @@ export default function App() {
         !editingFolderId &&
         !editingTextId
       ) {
+        const target = event.target as HTMLElement | null;
+        if (target?.closest?.(".cm-editor")) return;
         event.preventDefault();
         setMarkdownPreview((value) => !value);
       }
