@@ -1340,7 +1340,7 @@ export default function App() {
             ×
           </button>
         </div>
-        {expanded ? (
+        {expanded && childEntries.length > 0 ? (
           <div className="folder-children">
             {childEntries.map((entry) =>
               entry.kind === "folder"
