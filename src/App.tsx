@@ -2023,16 +2023,18 @@ export default function App() {
                 onChange={(event) => setOllamaModel(event.target.value)}
                 disabled={ollamaLoading}
               >
-                {ollamaModels.length === 0 ? (
-                  <option value="">
-                    {ollamaLoading ? "Loading models…" : "No models found"}
-                  </option>
-                ) : (
+                {ollamaModels.length > 0 ? (
                   ollamaModels.map((model) => (
                     <option key={model} value={model}>
                       {model}
                     </option>
                   ))
+                ) : ollamaModel ? (
+                  <option value={ollamaModel}>{ollamaModel}</option>
+                ) : (
+                  <option value="">
+                    {ollamaLoading ? "Loading models…" : "No models found"}
+                  </option>
                 )}
               </select>
               {ollamaError ? (
