@@ -1443,15 +1443,15 @@ export default function App() {
 
       <main className="workspace">
         {sidebarCollapsed ? (
-          <div className="workspace__topbar">
+          <div className="sidebar__footer sidebar__footer--collapsed">
             <button
-              className="icon-button icon-button--ghost"
+              className="icon-button"
               onClick={() => setSidebarCollapsed(false)}
               aria-label="Expand sidebar"
               title="Expand sidebar"
               type="button"
             >
-              <span aria-hidden="true">&gt;</span>
+              <span className="icon-button__glyph" aria-hidden="true">▶</span>
             </button>
           </div>
         ) : null}
