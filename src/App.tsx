@@ -1941,6 +1941,7 @@ export default function App() {
                 <span aria-hidden="true">×</span>
               </button>
             </div>
+            <div className="settings-panel__section-title">Interface</div>
             <div className="settings-panel__section">
               <label className="settings-panel__label" htmlFor="theme-select">
                 Theme
@@ -1996,6 +1997,59 @@ export default function App() {
                 />
                 <div className="settings-panel__value">{textSize}px</div>
               </div>
+            </div>
+            <div className="settings-panel__section-title">Ollama</div>
+            <div className="settings-panel__section">
+              <label className="settings-panel__label" htmlFor="ollama-url">
+                URL
+              </label>
+              <input
+                id="ollama-url"
+                className="settings-panel__input"
+                type="text"
+                value={ollamaUrl}
+                onChange={(event) => setOllamaUrl(event.target.value)}
+                placeholder={DEFAULT_OLLAMA_URL}
+              />
+            </div>
+            <div className="settings-panel__section">
+              <label className="settings-panel__label" htmlFor="ollama-model">
+                Model
+              </label>
+              <select
+                id="ollama-model"
+                className="settings-panel__select"
+                value={ollamaModel}
+                onChange={(event) => setOllamaModel(event.target.value)}
+                disabled={ollamaLoading}
+              >
+                {ollamaModels.length === 0 ? (
+                  <option value="">
+                    {ollamaLoading ? "Loading models…" : "No models found"}
+                  </option>
+                ) : (
+                  ollamaModels.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))
+                )}
+              </select>
+              {ollamaError ? (
+                <div className="settings-panel__hint">{ollamaError}</div>
+              ) : null}
+            </div>
+            <div className="settings-panel__section">
+              <label className="settings-panel__label" htmlFor="ollama-prompt">
+                Prompt
+              </label>
+              <textarea
+                id="ollama-prompt"
+                className="settings-panel__textarea"
+                value={ollamaPrompt}
+                onChange={(event) => setOllamaPrompt(event.target.value)}
+                rows={6}
+              />
             </div>
           </div>
         </div>
