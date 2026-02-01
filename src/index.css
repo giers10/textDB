@@ -966,9 +966,32 @@ body:not([data-theme="light"]) .folder-item {
   gap: 8px;
 }
 
+.settings-panel__section-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
 .settings-panel__label {
   font-size: 0.9rem;
   color: var(--muted);
+}
+
+.settings-panel__input,
+.settings-panel__textarea {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--ink);
+  padding: 8px 10px;
+  font-size: 0.95rem;
+}
+
+.settings-panel__textarea {
+  resize: vertical;
+  min-height: 120px;
 }
 
 .settings-panel__select {
@@ -995,6 +1018,11 @@ body:not([data-theme="light"]) .folder-item {
   text-align: right;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.settings-panel__hint {
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 body[data-theme="light"] .editor__textarea-wrap:focus-within {
