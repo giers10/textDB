@@ -156,7 +156,11 @@ export default function App() {
   });
 
   const bodyRef = useRef(body);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const editorHostRef = useRef<HTMLDivElement | null>(null);
+  const editorViewRef = useRef<EditorView | null>(null);
+  const editorValueRef = useRef("");
+  const lineNumbersCompartmentRef = useRef(new Compartment());
+  const editableCompartmentRef = useRef(new Compartment());
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
   const ignoreTextBlurRef = useRef(false);
