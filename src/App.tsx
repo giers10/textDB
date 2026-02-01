@@ -1539,13 +1539,13 @@ export default function App() {
 
               <div
                 className={`editor__textarea-wrap${
-                  markdownPreview ? " editor__textarea-wrap--preview" : ""
-                }`}
+                  markdownPreview && !splitView ? " editor__textarea-wrap--preview" : ""
+                }${markdownPreview && splitView ? " editor__textarea-wrap--split" : ""}`}
               >
                 <div
                   ref={editorHostRef}
                   className={`editor__codemirror${
-                    markdownPreview ? " editor__codemirror--hidden" : ""
+                    markdownPreview && !splitView ? " editor__codemirror--hidden" : ""
                   }`}
                 />
                 <div
@@ -1574,7 +1574,11 @@ export default function App() {
                       type="button"
                       onClick={() => setMarkdownPreview((value) => !value)}
                     >
-                      {markdownPreview ? "Edit" : "Preview Markdown"}
+                      {markdownPreview
+                        ? splitView
+                          ? "Hide Preview"
+                          : "Edit"
+                        : "Preview Markdown"}
                     </button>
                     <button className="button" onClick={handleExportText}>
                       Export Text
