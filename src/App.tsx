@@ -565,15 +565,13 @@ export default function App() {
   ]);
 
   const handleNewText = useCallback(async () => {
-    const sortOrder = getNextTextSortOrder(null);
-    const { textId } = await createText(DEFAULT_TITLE, "", null, sortOrder);
+    const { textId } = await createText(DEFAULT_TITLE, "", null);
     await refreshTexts();
     setSelectedTextId(textId);
-  }, [getNextTextSortOrder, refreshTexts]);
+  }, [refreshTexts]);
 
   const handleNewFolder = useCallback(async () => {
-    const sortOrder = getNextFolderSortOrder(null);
-    const { folderId } = await createFolder(DEFAULT_FOLDER_NAME, null, sortOrder);
+    const { folderId } = await createFolder(DEFAULT_FOLDER_NAME, null);
     await refreshFolders();
     setExpandedFolders((prev) => {
       const next = new Set(prev);
@@ -584,7 +582,7 @@ export default function App() {
     setEditingTextTitle("");
     setEditingFolderId(folderId);
     setEditingFolderName(DEFAULT_FOLDER_NAME);
-  }, [getNextFolderSortOrder, refreshFolders]);
+  }, [refreshFolders]);
 
   const clearFolderEditing = useCallback(() => {
     setEditingFolderId(null);
