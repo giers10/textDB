@@ -297,11 +297,6 @@ body {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-.folder-item.is-open {
-  border-color: var(--border-strong);
-  background: var(--bg-active);
-}
-
 .folder-item__toggle {
   width: 22px;
   height: 22px;
@@ -313,7 +308,7 @@ body {
   color: var(--muted);
   cursor: pointer;
   padding: 0;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .folder-item__title {
@@ -321,6 +316,26 @@ body {
   flex: 1;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.folder-item__delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: 6px;
+}
+
+.folder-item__delete:hover {
+  color: var(--ink);
 }
 
 .folder-item__input {
