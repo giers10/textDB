@@ -254,7 +254,7 @@ body {
   justify-content: center;
   cursor: pointer;
   position: absolute;
-  top: 8px;
+  top: 4px;
   right: 8px;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
