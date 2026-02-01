@@ -160,7 +160,6 @@ export default function App() {
   const editorValueRef = useRef("");
   const lineNumbersCompartmentRef = useRef(new Compartment());
   const editableCompartmentRef = useRef(new Compartment());
-  const tabKeymapCompartmentRef = useRef(new Compartment());
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
   const ignoreTextBlurRef = useRef(false);
@@ -219,7 +218,6 @@ export default function App() {
         keymap.of([...defaultKeymap, ...historyKeymap]),
         lineNumbersCompartmentRef.current.of([]),
         editableCompartmentRef.current.of(EditorView.editable.of(true)),
-        tabKeymapCompartmentRef.current.of([]),
         EditorView.updateListener.of((update) => {
           if (!update.docChanged) return;
           const value = update.state.doc.toString();
@@ -392,40 +390,6 @@ export default function App() {
     });
   }, [editorReady, isViewingHistory, markdownPreview]);
 
-  useEffect(() => {
-    const view = editorViewRef.current;
-    if (!view) return;
-    const keys = Prec.high(
-      keymap.of([
-      {
-        key: "Tab",
-        run: () => {
-          if (
-            !selectedTextId ||
-            settingsOpen ||
-            confirmState ||
-            editingFolderId ||
-            editingTextId
-          ) {
-            return false;
-          }
-          setMarkdownPreview((value) => !value);
-          return true;
-        }
-      }
-      ])
-    );
-    view.dispatch({
-      effects: tabKeymapCompartmentRef.current.reconfigure(keys)
-    });
-  }, [
-    confirmState,
-    editorReady,
-    editingFolderId,
-    editingTextId,
-    selectedTextId,
-    settingsOpen
-  ]);
 
   useEffect(() => {
     const view = editorViewRef.current;
@@ -1254,22 +1218,7 @@ export default function App() {
         return;
       }
 
-      if (
-        event.key === "Tab" &&
-        !event.metaKey &&
-        !event.ctrlKey &&
-        !event.altKey &&
-        selectedTextId &&
-        !settingsOpen &&
-        !confirmState &&
-        !editingFolderId &&
-        !editingTextId
-      ) {
-        const target = event.target as HTMLElement | null;
-        if (target?.closest?.(".cm-editor")) return;
-        event.preventDefault();
-        setMarkdownPreview((value) => !value);
-      }
+      if (event.key === "Tab") return;
     };
 
     window.addEventListener("keydown", handleKeyDown);
