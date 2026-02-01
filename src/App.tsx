@@ -25,6 +25,7 @@ import {
   listFolders,
   listTexts,
   listVersions,
+  moveFolder,
   moveTextToFolder,
   saveManualVersion,
   searchTexts,
@@ -707,12 +708,39 @@ export default function App() {
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [buildFolderPath, folders]);
 
+  const isDescendantFolder = useCallback(
+    (folderId: string, potentialAncestorId: string) => {
+      let current: string | null = folderById.get(folderId)?.parent_id ?? null;
+      while (current) {
+        if (current === potentialAncestorId) return true;
+        current = folderById.get(current)?.parent_id ?? null;
+      }
+      return false;
+    },
+    [folderById]
+  );
+
   const handleMoveTextToFolder = useCallback(
     async (textId: string, folderId: string | null) => {
       await moveTextToFolder(textId, folderId, null);
       await refreshTexts();
     },
     [refreshTexts]
+  );
+
+  const handleMoveFolderToFolder = useCallback(
+    async (folderId: string, parentId: string | null) => {
+      await moveFolder(folderId, parentId, null);
+      await refreshFolders();
+      if (parentId) {
+        setExpandedFolders((prev) => {
+          const next = new Set(prev);
+          next.add(parentId);
+          return next;
+        });
+      }
+    },
+    [refreshFolders]
   );
 
   const handleDeleteText = useCallback(
@@ -797,6 +825,30 @@ export default function App() {
   const handleFolderContextMenu = useCallback(
     async (event: React.MouseEvent, folder: Folder) => {
       event.preventDefault();
+      const moveTargets = [
+        {
+          text: "Top level",
+          action: () => {
+            handleMoveFolderToFolder(folder.id, null).catch((error) => {
+              console.error("Failed to move folder", error);
+            });
+          }
+        },
+        ...folderPathList
+          .filter(
+            (candidate) =>
+              candidate.id !== folder.id &&
+              !isDescendantFolder(candidate.id, folder.id)
+          )
+          .map((candidate) => ({
+            text: candidate.label,
+            action: () => {
+              handleMoveFolderToFolder(folder.id, candidate.id).catch((error) => {
+                console.error("Failed to move folder", error);
+              });
+            }
+          }))
+      ];
       const menu = await Menu.new({
         items: [
           {
@@ -814,12 +866,16 @@ export default function App() {
                 onConfirm: () => handleDeleteFolder(folder.id)
               });
             }
+          },
+          {
+            text: "Move to folder",
+            items: moveTargets
           }
         ]
       });
       await menu.popup(undefined, getCurrentWindow());
     },
-    [handleDeleteFolder, startEditingFolder]
+    [folderPathList, handleDeleteFolder, handleMoveFolderToFolder, isDescendantFolder, startEditingFolder]
   );
 
   const createTextFromFile = useCallback(
