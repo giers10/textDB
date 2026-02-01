@@ -196,6 +196,10 @@ export default function App() {
   const hasText = body.trim().length > 0;
   const showLineNumbersActive = showLineNumbers && !markdownPreview;
   const hasSearch = search.trim().length > 0;
+  const markdownHtml = useMemo(
+    () => (markdownPreview ? markdownToHTML(body) : ""),
+    [body, markdownPreview]
+  );
 
   const folderById = useMemo(() => {
     const map = new Map<string, Folder>();
