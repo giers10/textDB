@@ -369,24 +369,36 @@ export default function App() {
 
 
   useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    if (showLineNumbersActive && !markdownPreview) {
-      appendLineNumbers(textarea);
-    } else {
-      removeLineNumbers(textarea);
-    }
-    return () => {
-      removeLineNumbers(textarea);
-    };
-  }, [markdownPreview, showLineNumbersActive]);
+    const view = editorViewRef.current;
+    if (!view) return;
+    const extensions = showLineNumbersActive
+      ? [lineNumbers(), highlightActiveLineGutter()]
+      : [];
+    view.dispatch({
+      effects: lineNumbersCompartmentRef.current.reconfigure(extensions)
+    });
+  }, [showLineNumbersActive]);
 
   useEffect(() => {
-    if (!showLineNumbersActive || markdownPreview) return;
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    refreshLineNumbers(textarea);
-  }, [body, markdownPreview, showLineNumbersActive]);
+    const view = editorViewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: editableCompartmentRef.current.reconfigure(
+        EditorView.editable.of(!isViewingHistory && !markdownPreview)
+      )
+    });
+  }, [isViewingHistory, markdownPreview]);
+
+  useEffect(() => {
+    const view = editorViewRef.current;
+    if (!view) return;
+    if (body === editorValueRef.current) return;
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: body },
+      annotations: Transaction.addToHistory.of(false)
+    });
+    editorValueRef.current = body;
+  }, [body]);
 
 
   const refreshTexts = useCallback(async () => {
