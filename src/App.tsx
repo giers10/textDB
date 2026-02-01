@@ -66,6 +66,10 @@ type HistoryEntry = {
   baseVersionId?: string | null;
 };
 
+type SidebarEntry =
+  | { kind: "folder"; item: Folder }
+  | { kind: "text"; item: Text };
+
 const DEFAULT_TITLE = "Untitled Text";
 const DEFAULT_FOLDER_NAME = "New Folder";
 
@@ -182,11 +186,6 @@ export default function App() {
   const showLineNumbersActive = showLineNumbers && !markdownPreview;
   const hasSearch = search.trim().length > 0;
 
-  const sortByUpdated = useCallback(
-    <T extends { updated_at: number }>(a: T, b: T) => b.updated_at - a.updated_at,
-    []
-  );
-
   const folderById = useMemo(() => {
     const map = new Map<string, Folder>();
     for (const folder of folders) {
@@ -194,40 +193,6 @@ export default function App() {
     }
     return map;
   }, [folders]);
-
-  const foldersByParent = useMemo(() => {
-    const map = new Map<string | null, Folder[]>();
-    for (const folder of folders) {
-      const key = folder.parent_id ?? null;
-      const list = map.get(key);
-      if (list) {
-        list.push(folder);
-      } else {
-        map.set(key, [folder]);
-      }
-    }
-    for (const [key, list] of map.entries()) {
-      map.set(key, [...list].sort(sortByUpdated));
-    }
-    return map;
-  }, [folders, sortByUpdated]);
-
-  const textsByFolder = useMemo(() => {
-    const map = new Map<string | null, Text[]>();
-    for (const text of texts) {
-      const key = text.folder_id ?? null;
-      const list = map.get(key);
-      if (list) {
-        list.push(text);
-      } else {
-        map.set(key, [text]);
-      }
-    }
-    for (const [key, list] of map.entries()) {
-      map.set(key, [...list].sort(sortByUpdated));
-    }
-    return map;
-  }, [texts, sortByUpdated]);
 
   const visibleFolderIds = useMemo(() => {
     if (!hasSearch) return null;
@@ -242,6 +207,35 @@ export default function App() {
     }
     return visible;
   }, [folderById, hasSearch, texts]);
+
+  const entriesByParent = useMemo(() => {
+    const map = new Map<string | null, SidebarEntry[]>();
+    const addEntry = (parentId: string | null, entry: SidebarEntry) => {
+      const list = map.get(parentId);
+      if (list) {
+        list.push(entry);
+      } else {
+        map.set(parentId, [entry]);
+      }
+    };
+
+    for (const folder of folders) {
+      if (hasSearch && visibleFolderIds && !visibleFolderIds.has(folder.id)) {
+        continue;
+      }
+      addEntry(folder.parent_id ?? null, { kind: "folder", item: folder });
+    }
+
+    for (const text of texts) {
+      addEntry(text.folder_id ?? null, { kind: "text", item: text });
+    }
+
+    for (const [key, list] of map.entries()) {
+      list.sort((a, b) => b.item.updated_at - a.item.updated_at);
+      map.set(key, list);
+    }
+    return map;
+  }, [folders, hasSearch, texts, visibleFolderIds]);
 
   const handleMarkdownPreviewClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
