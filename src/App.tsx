@@ -142,21 +142,12 @@ export default function App() {
   const [showLineNumbers, setShowLineNumbers] = useState(() => {
     return localStorage.getItem("textdb.lineNumbers") === "true";
   });
-  const [measureTick, setMeasureTick] = useState(0);
-  const [defaultLineHeight, setDefaultLineHeight] = useState(0);
-  const [lineNumbersVersion, setLineNumbersVersion] = useState(0);
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: -1 });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
   });
 
   const bodyRef = useRef(body);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const lineNumbersRef = useRef<HTMLDivElement | null>(null);
-  const lineHeightsRef = useRef<number[]>([]);
-  const lineTopsRef = useRef<number[]>([]);
-  const measureCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const scrollRafRef = useRef<number>(0);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
   const ignoreTextBlurRef = useRef(false);
