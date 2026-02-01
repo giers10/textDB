@@ -400,6 +400,12 @@ export default function App() {
     editorValueRef.current = body;
   }, [body]);
 
+  useEffect(() => {
+    const view = editorViewRef.current;
+    if (!view) return;
+    view.requestMeasure();
+  }, [markdownPreview, textSize, sidebarCollapsed, historyOpen]);
+
 
   const refreshTexts = useCallback(async () => {
     setLoadingTexts(true);
