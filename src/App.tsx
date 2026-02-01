@@ -1359,6 +1359,23 @@ export default function App() {
           ) : (
             <div className="folder-item__title">{folder.name}</div>
           )}
+          <button
+            className="folder-item__delete"
+            onClick={(event) => {
+              event.stopPropagation();
+              setConfirmState({
+                title: "Delete folder",
+                message:
+                  "Delete this folder? Its subfolders and texts will move one level up.",
+                actionLabel: "Delete folder",
+                onConfirm: () => handleDeleteFolder(folder.id)
+              });
+            }}
+            aria-label="Delete folder"
+            title="Delete folder"
+          >
+            ×
+          </button>
         </div>
         {expanded ? (
           <div className="folder-children">
