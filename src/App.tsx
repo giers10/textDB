@@ -1495,7 +1495,7 @@ export default function App() {
                 />
                 <div
                   className={`markdown-preview md-root${markdownPreview ? "" : " markdown-preview--hidden"}`}
-                  dangerouslySetInnerHTML={{ __html: markdownToHTML(body) }}
+                  dangerouslySetInnerHTML={{ __html: markdownHtml }}
                   onClick={handleMarkdownPreviewClick}
                 />
               </div>
