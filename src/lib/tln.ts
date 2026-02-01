@@ -73,6 +73,13 @@ export const appendLineNumbers = (ta: HTMLTextAreaElement) => {
   }
 };
 
+export const refreshLineNumbers = (ta: HTMLTextAreaElement) => {
+  if (!ta || !ta.classList.contains("tln-active")) return;
+  const wrapper = ta.previousSibling;
+  if (!wrapper || !(wrapper as HTMLElement).classList?.contains("tln-wrapper")) return;
+  updateLineNumbers(ta, wrapper as HTMLElement);
+};
+
 export const removeLineNumbers = (ta: HTMLTextAreaElement) => {
   if (!ta || !ta.classList.contains("tln-active")) return;
   ta.classList.remove("tln-active");
