@@ -1442,35 +1442,23 @@ export default function App() {
       ) : null}
 
       <main className="workspace">
-        {sidebarCollapsed ? (
-          <div className="sidebar__footer sidebar__footer--collapsed">
-            <button
-              className="icon-button"
-              onClick={() => setSidebarCollapsed(false)}
-              aria-label="Expand sidebar"
-              title="Expand sidebar"
-              type="button"
-            >
-              <span className="icon-button__glyph" aria-hidden="true">▶</span>
-            </button>
-          </div>
-        ) : null}
-        {!selectedTextId ? (
-          <div className="empty-state">
-            <div className="empty-state__title">Create your first text</div>
-            <div className="empty-state__subtitle">
-              Everything stays offline in a single SQLite database.
+        <div className="workspace__body">
+          {!selectedTextId ? (
+            <div className="empty-state">
+              <div className="empty-state__title">Create your first text</div>
+              <div className="empty-state__subtitle">
+                Everything stays offline in a single SQLite database.
+              </div>
+              <button className="button button--primary" onClick={handleNewText}>
+                New Text
+              </button>
             </div>
-            <button className="button button--primary" onClick={handleNewText}>
-              New Text
-            </button>
-          </div>
-        ) : (
-          <div
-            className={`workspace__content${
-              historyOpen ? " workspace__content--history" : ""
-            }`}
-          >
+          ) : (
+            <div
+              className={`workspace__content${
+                historyOpen ? " workspace__content--history" : ""
+              }`}
+            >
             <section className="editor">
               <div className="editor__header">
                 <div className="editor__title-row">
@@ -1674,8 +1662,24 @@ export default function App() {
                 </div>
               </aside>
             ) : null}
+            </div>
+          )}
+        </div>
+        {sidebarCollapsed ? (
+          <div className="workspace__footer">
+            <div className="sidebar__footer sidebar__footer--collapsed">
+              <button
+                className="icon-button"
+                onClick={() => setSidebarCollapsed(false)}
+                aria-label="Expand sidebar"
+                title="Expand sidebar"
+                type="button"
+              >
+                <span className="icon-button__glyph" aria-hidden="true">▶</span>
+              </button>
+            </div>
           </div>
-        )}
+        ) : null}
       </main>
 
       {settingsOpen ? (
