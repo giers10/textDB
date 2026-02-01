@@ -280,20 +280,21 @@ export async function setFolderOrder(folderIds: string[]) {
 
 export async function deleteFolder(folderId: string) {
   const db = await getDb();
+  const now = Date.now();
   const rows = await db.select<{ parent_id: string | null }[]>(
     "SELECT parent_id FROM folders WHERE id = $1 LIMIT 1",
     [folderId]
   );
   const parentId = rows[0]?.parent_id ?? null;
 
-  await db.execute("UPDATE folders SET parent_id = $1 WHERE parent_id = $2", [
-    parentId,
-    folderId
-  ]);
-  await db.execute("UPDATE prompts SET folder_id = $1 WHERE folder_id = $2", [
-    parentId,
-    folderId
-  ]);
+  await db.execute(
+    "UPDATE folders SET parent_id = $1, updated_at = $2 WHERE parent_id = $3",
+    [parentId, now, folderId]
+  );
+  await db.execute(
+    "UPDATE prompts SET folder_id = $1, updated_at = $2 WHERE folder_id = $3",
+    [parentId, now, folderId]
+  );
   await db.execute("DELETE FROM folders WHERE id = $1", [folderId]);
 }
 
@@ -303,9 +304,10 @@ export async function moveTextToFolder(
   sortOrder: number | null = null
 ) {
   const db = await getDb();
+  const now = Date.now();
   await db.execute(
-    "UPDATE prompts SET folder_id = $1, sort_order = $2 WHERE id = $3",
-    [folderId, sortOrder, textId]
+    "UPDATE prompts SET folder_id = $1, sort_order = $2, updated_at = $3 WHERE id = $4",
+    [folderId, sortOrder, now, textId]
   );
 }
 
