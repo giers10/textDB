@@ -148,10 +148,12 @@ export default function App() {
     return 16;
   });
   const [showLineNumbers, setShowLineNumbers] = useState(() => {
-    return localStorage.getItem("textdb.lineNumbers") === "true";
+    const stored = localStorage.getItem("textdb.lineNumbers");
+    return stored === null ? true : stored === "true";
   });
   const [splitView, setSplitView] = useState(() => {
-    return localStorage.getItem("textdb.splitView") === "true";
+    const stored = localStorage.getItem("textdb.splitView");
+    return stored === null ? true : stored === "true";
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
