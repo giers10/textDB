@@ -664,6 +664,7 @@ body:not([data-theme="light"]) .folder-item {
   border-right: 1px solid var(--border);
   user-select: none;
   overflow: hidden;
+  height: 100%;
   counter-reset: line;
 }
 
