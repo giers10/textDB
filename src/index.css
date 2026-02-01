@@ -288,7 +288,7 @@ body {
   background: var(--bg-elevated);
   color: var(--ink);
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: none;
   position: relative;
 }
 
