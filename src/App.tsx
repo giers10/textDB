@@ -437,12 +437,25 @@ export default function App() {
     visibleRange.start
   ]);
 
-  const handleTextareaScroll = useCallback((event: React.UIEvent<HTMLTextAreaElement>) => {
-    if (!showLineNumbersActive) return;
-    if (lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = event.currentTarget.scrollTop;
+  const scheduleUpdateVisibleRange = useCallback(() => {
+    if (scrollRafRef.current) {
+      cancelAnimationFrame(scrollRafRef.current);
     }
-  }, [showLineNumbersActive]);
+    scrollRafRef.current = requestAnimationFrame(() => {
+      updateVisibleRange();
+    });
+  }, [updateVisibleRange]);
+
+  const handleTextareaScroll = useCallback(
+    (event: React.UIEvent<HTMLTextAreaElement>) => {
+      if (!showLineNumbersActive) return;
+      if (lineNumbersRef.current) {
+        lineNumbersRef.current.scrollTop = event.currentTarget.scrollTop;
+      }
+      scheduleUpdateVisibleRange();
+    },
+    [scheduleUpdateVisibleRange, showLineNumbersActive]
+  );
 
   useEffect(() => {
     if (!showLineNumbersActive) return;
