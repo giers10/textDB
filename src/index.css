@@ -271,11 +271,6 @@ body {
   word-break: break-word;
 }
 
-.prompt-item__meta {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
 .folder-node {
   display: flex;
   flex-direction: column;
@@ -318,6 +313,13 @@ body:not([data-theme="light"]) .folder-item {
   cursor: pointer;
   padding: 0;
   font-size: 1.2rem;
+}
+
+.folder-item__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  display: block;
 }
 
 .folder-item__title {
