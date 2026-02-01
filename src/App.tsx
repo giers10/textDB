@@ -490,14 +490,61 @@ export default function App() {
     const measure = measureRef.current;
     if (!textarea || !measure) return;
     measure.style.width = `${textarea.clientWidth}px`;
-    const heights = Array.from(measure.children).map((child) =>
-      Math.ceil((child as HTMLElement).getBoundingClientRect().height)
-    );
-    setLineHeights(heights);
+    const computed = window.getComputedStyle(textarea);
+    const lineHeight = parseFloat(computed.lineHeight);
+    if (Number.isFinite(lineHeight) && lineHeight > 0 && lineHeight !== defaultLineHeight) {
+      setDefaultLineHeight(lineHeight);
+    }
+  }, [defaultLineHeight, measureTick, showLineNumbersActive, sidebarCollapsed, historyOpen, textSize]);
+
+  useEffect(() => {
+    if (!showLineNumbersActive) return;
+    fenwickRef.current.reset(lineCount);
+    lineHeightsRef.current = new Array(lineCount).fill(0);
+    setLineNumbersVersion((version) => version + 1);
+    updateVisibleRange();
+  }, [defaultLineHeight, lineCount, measureTick, showLineNumbersActive, textSize, updateVisibleRange]);
+
+  useLayoutEffect(() => {
+    if (!showLineNumbersActive || !defaultLineHeight) return;
+    const textarea = textareaRef.current;
+    const measureContainer = measureRef.current;
+    const measureLine = measureLineRef.current;
+    if (!textarea || !measureContainer || !measureLine) return;
+    measureContainer.style.width = `${textarea.clientWidth}px`;
+    if (visibleRange.end < visibleRange.start) return;
+    let changed = false;
+    for (let i = visibleRange.start; i <= visibleRange.end; i += 1) {
+      const lineText = lines[i] ?? "";
+      measureLine.textContent = lineText.length > 0 ? lineText : " ";
+      const height = Math.ceil(measureLine.getBoundingClientRect().height);
+      const prev = lineHeightsRef.current[i] || 0;
+      const base = prev || defaultLineHeight;
+      if (height > 0 && height !== prev) {
+        lineHeightsRef.current[i] = height;
+        fenwickRef.current.add(i, height - base);
+        changed = true;
+      }
+    }
+    if (changed) {
+      setLineNumbersVersion((version) => version + 1);
+      scheduleUpdateVisibleRange();
+    }
     if (lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = textarea.scrollTop;
     }
-  }, [lines, showLineNumbersActive, textSize, measureTick, sidebarCollapsed, historyOpen]);
+  }, [
+    defaultLineHeight,
+    lines,
+    measureTick,
+    scheduleUpdateVisibleRange,
+    showLineNumbersActive,
+    sidebarCollapsed,
+    historyOpen,
+    textSize,
+    visibleRange.end,
+    visibleRange.start
+  ]);
 
   useEffect(() => {
     if (showLineNumbersActive && textareaRef.current && lineNumbersRef.current) {
