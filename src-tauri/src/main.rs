@@ -13,10 +13,7 @@ fn take_pending_opens(state: tauri::State<PendingOpens>) -> Vec<String> {
 
 fn main() {
   tauri::Builder::default()
-    .setup(|app| {
-      app.manage(PendingOpens(Mutex::new(Vec::new())));
-      Ok(())
-    })
+    .manage(PendingOpens(Mutex::new(Vec::new())))
     .invoke_handler(tauri::generate_handler![take_pending_opens])
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_clipboard_manager::init())
@@ -36,9 +33,10 @@ fn main() {
             if paths.is_empty() {
               return;
             }
-            let state = app.state::<PendingOpens>();
-            let mut pending = state.0.lock().expect("pending opens lock");
-            pending.extend(paths.iter().cloned());
+            if let Some(state) = app.try_state::<PendingOpens>() {
+              let mut pending = state.0.lock().expect("pending opens lock");
+              pending.extend(paths.iter().cloned());
+            }
             let _ = app.emit("file-opened", paths);
           }
         })
