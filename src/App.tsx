@@ -895,11 +895,8 @@ export default function App() {
           {
             text: "Delete",
             action: () => {
-              setConfirmState({
-                title: "Delete text",
-                message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
-                actionLabel: "Delete text",
-                onConfirm: () => handleDeleteText(text.id)
+              requestDeleteText(text).catch((error) => {
+                console.error("Failed to delete text", error);
               });
             }
           },
@@ -911,7 +908,7 @@ export default function App() {
       });
       await menu.popup(undefined, getCurrentWindow());
     },
-    [folderPathList, handleDeleteText, handleMoveTextToFolder, startEditingText]
+    [folderPathList, handleMoveTextToFolder, requestDeleteText, startEditingText]
   );
 
   const handleFolderContextMenu = useCallback(
@@ -950,12 +947,8 @@ export default function App() {
           {
             text: "Delete",
             action: () => {
-              setConfirmState({
-                title: "Delete folder",
-                message:
-                  "Delete this folder? Its subfolders and texts will move one level up.",
-                actionLabel: "Delete folder",
-                onConfirm: () => handleDeleteFolder(folder.id)
+              requestDeleteFolder(folder).catch((error) => {
+                console.error("Failed to delete folder", error);
               });
             }
           },
@@ -967,7 +960,7 @@ export default function App() {
       });
       await menu.popup(undefined, getCurrentWindow());
     },
-    [folderPathList, handleDeleteFolder, handleMoveFolderToFolder, isDescendantFolder, startEditingFolder]
+    [folderPathList, handleMoveFolderToFolder, isDescendantFolder, requestDeleteFolder, startEditingFolder]
   );
 
   const createTextFromFile = useCallback(
