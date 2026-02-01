@@ -1357,89 +1357,103 @@ export default function App() {
 
   return (
     <div className={`app app--theme-${theme}${sidebarCollapsed ? " app--sidebar-collapsed" : ""}`}>
-      {!sidebarCollapsed ? (
-      <aside className="sidebar">
-        <div className="sidebar__header">
-          <div className="sidebar__title-row">
-            <div className="app-title">TextDB</div>
-          </div>
-          <input
-            className="search"
-            placeholder="Search texts"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-        <div className="prompt-list">
-          <div
-            className="prompt-list__inner"
-          >
-            {loadingTexts || loadingFolders ? (
-              <div className="empty">Loading…</div>
-            ) : hasSearch && texts.length === 0 ? (
-              <div className="empty">No matching texts.</div>
-            ) : texts.length === 0 && folders.length === 0 ? (
-              <div className="empty">No texts yet.</div>
-            ) : (
-              <>
-                {(entriesByParent.get(null) ?? []).map((entry) =>
-                  entry.kind === "folder"
-                    ? renderFolder(entry.item)
-                    : renderTextItem(entry.item)
+      <aside className={`sidebar${sidebarCollapsed ? " sidebar--collapsed" : ""}`}>
+        {!sidebarCollapsed ? (
+          <>
+            <div className="sidebar__header">
+              <div className="sidebar__title-row">
+                <div className="app-title">TextDB</div>
+              </div>
+              <input
+                className="search"
+                placeholder="Search texts"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </div>
+            <div className="prompt-list">
+              <div className="prompt-list__inner">
+                {loadingTexts || loadingFolders ? (
+                  <div className="empty">Loading…</div>
+                ) : hasSearch && texts.length === 0 ? (
+                  <div className="empty">No matching texts.</div>
+                ) : texts.length === 0 && folders.length === 0 ? (
+                  <div className="empty">No texts yet.</div>
+                ) : (
+                  <>
+                    {(entriesByParent.get(null) ?? []).map((entry) =>
+                      entry.kind === "folder"
+                        ? renderFolder(entry.item)
+                        : renderTextItem(entry.item)
+                    )}
+                  </>
                 )}
-              </>
-            )}
-          </div>
-        </div>
-        <div className="sidebar__footer">
-          <button
-            className="icon-button"
-            onClick={handleNewFolder}
-            aria-label="New folder"
-            title="New folder"
-            type="button"
-          >
-            <span className="icon-button__glyph" aria-hidden="true">📁</span>
-          </button>
-          <button
-            className="icon-button"
-            onClick={handleNewText}
-            aria-label="New text"
-            title="New text"
-            type="button"
-          >
-            <span className="icon-button__glyph" aria-hidden="true">✚</span>
-          </button>
-          <button
-            className="icon-button"
-            onClick={handleOpenText}
-            aria-label="Open text"
-            title="Open text"
-            type="button"
-          >
-            <span className="icon-button__glyph" aria-hidden="true">⤓</span>
-          </button>
-          <button
-            className="icon-button"
-            onClick={() => setSettingsOpen(true)}
-            aria-label="Open settings"
-            title="Settings"
-            type="button"
-          >
-            <span className="icon-button__glyph icon-button__glyph--large" aria-hidden="true">⚙</span>
-          </button>
-          <button
-            className="icon-button"
-            onClick={() => setSidebarCollapsed(true)}
-            aria-label="Collapse sidebar"
-            title="Collapse sidebar"
-            type="button"
-          >
-            <span className="icon-button__glyph" aria-hidden="true">◀</span>
-          </button>
+              </div>
+            </div>
+          </>
+        ) : null}
+        <div className={`sidebar__footer${sidebarCollapsed ? " sidebar__footer--collapsed" : ""}`}>
+          {sidebarCollapsed ? (
+            <button
+              className="icon-button"
+              onClick={() => setSidebarCollapsed(false)}
+              aria-label="Expand sidebar"
+              title="Expand sidebar"
+              type="button"
+            >
+              <span className="icon-button__glyph" aria-hidden="true">▶</span>
+            </button>
+          ) : (
+            <>
+              <button
+                className="icon-button"
+                onClick={handleNewFolder}
+                aria-label="New folder"
+                title="New folder"
+                type="button"
+              >
+                <span className="icon-button__glyph" aria-hidden="true">📁</span>
+              </button>
+              <button
+                className="icon-button"
+                onClick={handleNewText}
+                aria-label="New text"
+                title="New text"
+                type="button"
+              >
+                <span className="icon-button__glyph" aria-hidden="true">✚</span>
+              </button>
+              <button
+                className="icon-button"
+                onClick={handleOpenText}
+                aria-label="Open text"
+                title="Open text"
+                type="button"
+              >
+                <span className="icon-button__glyph" aria-hidden="true">⤓</span>
+              </button>
+              <button
+                className="icon-button"
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Open settings"
+                title="Settings"
+                type="button"
+              >
+                <span className="icon-button__glyph icon-button__glyph--large" aria-hidden="true">⚙</span>
+              </button>
+              <button
+                className="icon-button"
+                onClick={() => setSidebarCollapsed(true)}
+                aria-label="Collapse sidebar"
+                title="Collapse sidebar"
+                type="button"
+              >
+                <span className="icon-button__glyph" aria-hidden="true">◀</span>
+              </button>
+            </>
+          )}
         </div>
       </aside>
-      ) : null}
 
       <main className="workspace">
         <div className="workspace__body">
@@ -1665,21 +1679,6 @@ export default function App() {
             </div>
           )}
         </div>
-        {sidebarCollapsed ? (
-          <div className="workspace__footer">
-            <div className="sidebar__footer sidebar__footer--collapsed">
-              <button
-                className="icon-button"
-                onClick={() => setSidebarCollapsed(false)}
-                aria-label="Expand sidebar"
-                title="Expand sidebar"
-                type="button"
-              >
-                <span className="icon-button__glyph" aria-hidden="true">▶</span>
-              </button>
-            </div>
-          </div>
-        ) : null}
       </main>
 
       {settingsOpen ? (
