@@ -1275,18 +1275,20 @@ export default function App() {
           }}
           onContextMenu={(event) => handleFolderContextMenu(event, folder)}
         >
-          <button
-            className="folder-item__toggle"
-            type="button"
-            aria-label={expanded ? "Collapse folder" : "Expand folder"}
-            onClick={(event) => {
-              event.stopPropagation();
-              toggleFolderExpanded(folder.id);
-            }}
-          >
-            {expanded ? "▾" : "▸"}
-          </button>
-          <img src={folderIconSrc} alt="" className="folder-item__icon" />
+          <div className="folder-item__lead">
+            <button
+              className="folder-item__toggle"
+              type="button"
+              aria-label={expanded ? "Collapse folder" : "Expand folder"}
+              onClick={(event) => {
+                event.stopPropagation();
+                toggleFolderExpanded(folder.id);
+              }}
+            >
+              {expanded ? "▾" : "▸"}
+            </button>
+            <img src={folderIconSrc} alt="" className="folder-item__icon" />
+          </div>
           {editingFolderId === folder.id ? (
             <input
               className="folder-item__input"
