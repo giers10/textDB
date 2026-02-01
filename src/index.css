@@ -72,7 +72,7 @@ body {
 }
 
 .app--sidebar-collapsed {
-  grid-template-columns: 1fr;
+  grid-template-columns: 60px 1fr;
 }
 
 .sidebar {
@@ -429,15 +429,6 @@ body:not([data-theme="light"]) .folder-item {
   min-height: 0;
   display: flex;
   flex-direction: column;
-}
-
-.workspace__footer {
-  display: flex;
-  align-items: center;
-}
-
-.workspace__footer .sidebar__footer {
-  padding: 0;
 }
 
 .workspace__topbar {
