@@ -1478,7 +1478,6 @@ export default function App() {
                   className={`editor__textarea${markdownPreview ? " editor__textarea--hidden" : ""}`}
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
-                  onScroll={handleTextareaScroll}
                   placeholder="Write your text here…"
                   readOnly={isViewingHistory || markdownPreview}
                 />
