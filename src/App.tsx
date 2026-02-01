@@ -155,6 +155,7 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
   });
+  const [editorReady, setEditorReady] = useState(false);
 
   const bodyRef = useRef(body);
   const editorViewRef = useRef<EditorView | null>(null);
@@ -207,6 +208,7 @@ export default function App() {
       if (editorViewRef.current) {
         editorViewRef.current.destroy();
         editorViewRef.current = null;
+        setEditorReady(false);
       }
       return;
     }
@@ -234,6 +236,7 @@ export default function App() {
     });
     editorViewRef.current = view;
     editorValueRef.current = bodyRef.current;
+    setEditorReady(true);
   }, []);
 
   const isViewingHistory = viewingVersion !== null;
@@ -379,7 +382,7 @@ export default function App() {
     view.dispatch({
       effects: lineNumbersCompartmentRef.current.reconfigure(extensions)
     });
-  }, [showLineNumbersActive]);
+  }, [editorReady, showLineNumbersActive]);
 
   useEffect(() => {
     const view = editorViewRef.current;
@@ -389,7 +392,7 @@ export default function App() {
         EditorView.editable.of(!isViewingHistory && !markdownPreview)
       )
     });
-  }, [isViewingHistory, markdownPreview]);
+  }, [editorReady, isViewingHistory, markdownPreview]);
 
   useEffect(() => {
     const view = editorViewRef.current;
@@ -415,7 +418,14 @@ export default function App() {
     view.dispatch({
       effects: tabKeymapCompartmentRef.current.reconfigure(keys)
     });
-  }, [confirmState, editingFolderId, editingTextId, selectedTextId, settingsOpen]);
+  }, [
+    confirmState,
+    editorReady,
+    editingFolderId,
+    editingTextId,
+    selectedTextId,
+    settingsOpen
+  ]);
 
   useEffect(() => {
     const view = editorViewRef.current;
