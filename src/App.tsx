@@ -1261,8 +1261,7 @@ export default function App() {
   const renderFolder = (folder: Folder) => {
     if (hasSearch && !visibleFolderIds?.has(folder.id)) return null;
     const expanded = isFolderExpanded(folder.id);
-    const childFolders = foldersByParent.get(folder.id) ?? [];
-    const childTexts = textsByFolder.get(folder.id) ?? [];
+    const childEntries = entriesByParent.get(folder.id) ?? [];
 
     return (
       <div key={folder.id} className="folder-node">
@@ -1338,8 +1337,11 @@ export default function App() {
         </div>
         {expanded ? (
           <div className="folder-children">
-            {childFolders.map((child) => renderFolder(child))}
-            {childTexts.map((text) => renderTextItem(text))}
+            {childEntries.map((entry) =>
+              entry.kind === "folder"
+                ? renderFolder(entry.item)
+                : renderTextItem(entry.item)
+            )}
           </div>
         ) : null}
       </div>
@@ -1393,9 +1395,10 @@ export default function App() {
               <div className="empty">No texts yet.</div>
             ) : (
               <>
-                {(foldersByParent.get(null) ?? []).map((folder) => renderFolder(folder))}
-                {(textsByFolder.get(null) ?? []).map((text) =>
-                  renderTextItem(text)
+                {(entriesByParent.get(null) ?? []).map((entry) =>
+                  entry.kind === "folder"
+                    ? renderFolder(entry.item)
+                    : renderTextItem(entry.item)
                 )}
               </>
             )}
