@@ -1417,7 +1417,7 @@ export default function App() {
               title="New folder"
               type="button"
             >
-              <span className="icon-button__glyph" aria-hidden="true">📁</span>
+              <img src={newFolderIconSrc} alt="" className="icon-button__img" />
             </button>
             <button
               className="icon-button"
@@ -1426,7 +1426,7 @@ export default function App() {
               title="New text"
               type="button"
             >
-              <span className="icon-button__glyph" aria-hidden="true">✚</span>
+              <img src={newTextIconSrc} alt="" className="icon-button__img" />
             </button>
             <button
               className="icon-button"
@@ -1435,7 +1435,7 @@ export default function App() {
               title="Open text"
               type="button"
             >
-              <span className="icon-button__glyph" aria-hidden="true">⤓</span>
+              <img src={openFileIconSrc} alt="" className="icon-button__img" />
             </button>
             <button
               className="icon-button"
@@ -1444,7 +1444,7 @@ export default function App() {
               title="Settings"
               type="button"
             >
-              <span className="icon-button__glyph icon-button__glyph--large" aria-hidden="true">⚙</span>
+              <img src={settingsIconSrc} alt="" className="icon-button__img" />
             </button>
             <button
               className="icon-button"
@@ -1453,7 +1453,7 @@ export default function App() {
               title="Collapse sidebar"
               type="button"
             >
-              <span className="icon-button__glyph" aria-hidden="true">◀</span>
+              <img src={sidebarCollapseIconSrc} alt="" className="icon-button__img" />
             </button>
           </div>
         </aside>
@@ -1481,7 +1481,7 @@ export default function App() {
                     title="Expand sidebar"
                     type="button"
                   >
-                    <span className="icon-button__glyph" aria-hidden="true">▶</span>
+                    <img src={sidebarExpandIconSrc} alt="" className="icon-button__img" />
                   </button>
                 </div>
               ) : null}
@@ -1570,7 +1570,7 @@ export default function App() {
                     title="Expand sidebar"
                     type="button"
                   >
-                    <span className="icon-button__glyph" aria-hidden="true">▶</span>
+                    <img src={sidebarExpandIconSrc} alt="" className="icon-button__img" />
                   </button>
                 ) : null}
                 {hasText ? (
