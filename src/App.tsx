@@ -17,7 +17,6 @@ import {
 } from "@codemirror/view";
 import { history, historyKeymap } from "@codemirror/history";
 import { defaultKeymap } from "@codemirror/commands";
-import "@codemirror/view/style.css";
 import folderIcon from "../src-tauri/icons/folder.png";
 import folderIconBright from "../src-tauri/icons/folder_b.png";
 import historyIcon from "../src-tauri/icons/history.png";
