@@ -319,7 +319,6 @@ export default function App() {
   const sidebarExpandIconSrc =
     theme === "light" ? sidebarExpandIconBright : sidebarExpandIcon;
 
-  const handleTextareaScroll = useCallback(() => {}, []);
 
   useEffect(() => {
     const textarea = textareaRef.current;
