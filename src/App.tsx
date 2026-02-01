@@ -387,6 +387,41 @@ export default function App() {
     []
   );
 
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const controller = new AbortController();
+    const loadModels = async () => {
+      setOllamaLoading(true);
+      setOllamaError(null);
+      try {
+        const response = await fetch(`${normalizedOllamaUrl}/api/tags`, {
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          throw new Error(`Ollama responded with ${response.status}`);
+        }
+        const data = await response.json();
+        const models = Array.isArray(data?.models)
+          ? data.models.map((model: { name?: string }) => model.name).filter(Boolean)
+          : [];
+        setOllamaModels(models);
+        if (!ollamaModel && models.length > 0) {
+          setOllamaModel(models[0]);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setOllamaModels([]);
+        setOllamaError("Unable to reach Ollama.");
+      } finally {
+        if (!controller.signal.aborted) {
+          setOllamaLoading(false);
+        }
+      }
+    };
+    loadModels();
+    return () => controller.abort();
+  }, [normalizedOllamaUrl, ollamaModel, settingsOpen]);
+
   const handlePrintMarkdown = useCallback(() => {
     if (!markdownPreview) return;
     document.body.classList.add("print-markdown");
@@ -399,6 +434,82 @@ export default function App() {
       window.print();
     });
   }, [markdownPreview]);
+
+  const handleConvertToMarkdown = useCallback(async () => {
+    if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
+    if (!ollamaModel) {
+      setConfirmState({
+        title: "Ollama",
+        message: "Select an Ollama model first.",
+        actionLabel: "OK",
+        onConfirm: () => {}
+      });
+      return;
+    }
+    const prompt = (ollamaPrompt || DEFAULT_OLLAMA_PROMPT).trim();
+    const fullPrompt = `${prompt}\n${body}`;
+    setIsConverting(true);
+    try {
+      const response = await fetch(`${normalizedOllamaUrl}/api/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: ollamaModel,
+          prompt: fullPrompt,
+          stream: false
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`Ollama responded with ${response.status}`);
+      }
+      const data = await response.json();
+      const resultText = typeof data?.response === "string" ? data.response : "";
+      if (!resultText) {
+        throw new Error("Ollama returned an empty response.");
+      }
+      const normalizedTitle = title.trim() || DEFAULT_TITLE;
+      const result = await saveManualVersion(
+        selectedTextId,
+        normalizedTitle,
+        resultText
+      );
+      setBody(resultText);
+      setLastPersistedBody(resultText);
+      setLastPersistedTitle(normalizedTitle);
+      setHasDraft(false);
+      setRestoredDraft(false);
+      setLatestManualVersionId(result.versionId);
+      setDraftBaseVersionId(result.versionId);
+      setSelectedHistoryId(result.versionId);
+      setViewingVersion(null);
+      historySnapshotRef.current = null;
+      setMarkdownPreview(true);
+      await refreshTexts();
+      await refreshVersions();
+    } catch (error) {
+      console.error("Failed to convert with Ollama", error);
+      setConfirmState({
+        title: "Ollama error",
+        message: error instanceof Error ? error.message : "Conversion failed.",
+        actionLabel: "OK",
+        onConfirm: () => {}
+      });
+    } finally {
+      setIsConverting(false);
+    }
+  }, [
+    body,
+    hasText,
+    isConverting,
+    isViewingHistory,
+    normalizedOllamaUrl,
+    ollamaModel,
+    ollamaPrompt,
+    refreshTexts,
+    refreshVersions,
+    selectedTextId,
+    title
+  ]);
 
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
