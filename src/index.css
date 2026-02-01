@@ -302,8 +302,8 @@ body:not([data-theme="light"]) .folder-item {
 }
 
 .folder-item__toggle {
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
