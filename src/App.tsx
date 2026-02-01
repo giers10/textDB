@@ -366,11 +366,12 @@ export default function App() {
   );
 
   const updateVisibleRange = useCallback(() => {
-    if (!showLineNumbersActive || !defaultLineHeight) return;
+    if (!showLineNumbersActive) return;
     const textarea = textareaRef.current;
     if (!textarea) return;
     const scrollTop = textarea.scrollTop;
     const viewportHeight = textarea.clientHeight;
+    if (lineTopsRef.current.length === 0) return;
     const start = findLineAtOffset(scrollTop);
     const end = findLineAtOffset(scrollTop + viewportHeight);
     const buffer = 8;
