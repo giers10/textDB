@@ -10,6 +10,8 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import historyIcon from "./assets/history.png";
 import historyIconBright from "./assets/history_b.png";
+import folderIcon from "../src-tauri/icons/folder.png";
+import folderIconBright from "../src-tauri/icons/folder_b.png";
 import { markdownToHTML } from "./markdown/markdown";
 import "./markdown/markdown-render.css";
 import {
@@ -299,6 +301,7 @@ export default function App() {
   }, [statusKey]);
 
   const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
+  const folderIconSrc = theme === "light" ? folderIconBright : folderIcon;
 
   const lines = useMemo(() => body.split("\n"), [body]);
   const lineNumbers = useMemo(() => lines.map((_, index) => index + 1), [lines]);
@@ -1237,7 +1240,6 @@ export default function App() {
         ) : (
           <div className="prompt-item__title">{text.title}</div>
         )}
-        <div className="prompt-item__meta">Updated {formatDate(text.updated_at)}</div>
       </div>
       <button
         className="prompt-item__delete"
@@ -1284,6 +1286,7 @@ export default function App() {
           >
             {expanded ? "▾" : "▸"}
           </button>
+          <img src={folderIconSrc} alt="" className="folder-item__icon" />
           {editingFolderId === folder.id ? (
             <input
               className="folder-item__input"
