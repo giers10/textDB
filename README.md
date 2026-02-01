@@ -1,6 +1,6 @@
 # TextDB
 
-TextDB is a **non-destructive**, completely offline, local-first text editor with built-in Markdown preview **and local AI conversion**. Its core promise is simple: your edits never overwrite your history. Every manual save is immutable and append-only, and autosaves are kept as a separate draft layer. It can also convert plain text to Markdown using a local Ollama model (recommended: `ministral:3b`). No accounts, no telemetry, no remote fonts, and no network calls.
+TextDB is a **non-destructive**, completely offline, local-first text editor with built-in Markdown preview **and local AI conversion**. Its core promise is simple: your edits never overwrite your history. Every manual save is immutable and append-only, and autosaves are kept as a separate draft layer. It can also convert plain text to Markdown using a local Ollama model (recommended: `ministral:3b`). No accounts, no telemetry, no remote fonts, and no outside network calls.
 
 ## Features
 
