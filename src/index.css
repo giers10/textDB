@@ -320,6 +320,7 @@ body:not([data-theme="light"]) .folder-item {
   height: 16px;
   flex: 0 0 16px;
   display: block;
+  margin-left: -4px;
 }
 
 .folder-item__title {
