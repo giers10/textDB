@@ -154,9 +154,9 @@ export default function App() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lineNumbersRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLDivElement | null>(null);
-  const measureLineRef = useRef<HTMLDivElement | null>(null);
   const lineHeightsRef = useRef<number[]>([]);
-  const fenwickRef = useRef<FenwickTree>(new FenwickTree(0));
+  const lineTopsRef = useRef<number[]>([]);
+  const measureCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const scrollRafRef = useRef<number>(0);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
