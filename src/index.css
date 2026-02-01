@@ -371,8 +371,7 @@ body {
   top: -10px;
   bottom: -10px;
   width: 2px;
-  background: var(--border);
-  opacity: 0.5;
+  background: var(--tree-line);
 }
 
 .folder-children > :last-child::after {
@@ -387,8 +386,7 @@ body {
   top: 50%;
   width: 12px;
   height: 2px;
-  background: var(--border);
-  opacity: 0.5;
+  background: var(--tree-line);
   transform: translateY(-50%);
 }
 
