@@ -595,35 +595,6 @@ body:not([data-theme="light"]) .folder-item {
   border-color: rgba(255, 255, 255, 0.18);
 }
 
-.line-numbers {
-  padding: 14px 10px;
-  min-width: 3ch;
-  text-align: right;
-  font-family: "SF Mono", "Menlo", "Consolas", monospace;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--muted);
-  background: var(--bg-contrast);
-  border-right: 1px solid var(--border);
-  user-select: none;
-  overflow: hidden;
-  position: relative;
-}
-
-.line-numbers__inner {
-  position: relative;
-  width: 100%;
-}
-
-.line-numbers__line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-}
-
 .editor__codemirror {
   flex: 1;
   width: 100%;
