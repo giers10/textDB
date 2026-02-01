@@ -291,6 +291,7 @@ body {
   color: var(--ink);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
+  position: relative;
 }
 
 .folder-item:hover {
@@ -353,7 +354,32 @@ body {
   flex-direction: column;
   gap: 10px;
   margin-top: 6px;
-  padding-left: 14px;
+  padding-left: 18px;
+  position: relative;
+}
+
+.folder-children::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+  opacity: 0.5;
+}
+
+.folder-children .folder-item::before,
+.folder-children .prompt-item::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 12px;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.5;
+  transform: translateY(-50%);
 }
 
 .workspace {
