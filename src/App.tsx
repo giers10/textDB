@@ -8,6 +8,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appDataDir } from "@tauri-apps/api/path";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { appendLineNumbers, removeLineNumbers } from "./lib/tln";
 import folderIcon from "../src-tauri/icons/folder.png";
 import folderIconBright from "../src-tauri/icons/folder_b.png";
 import historyIcon from "../src-tauri/icons/history.png";
