@@ -8,7 +8,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appDataDir } from "@tauri-apps/api/path";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { Compartment, EditorState, Transaction } from "@codemirror/state";
+import { Compartment, EditorState, Transaction, Prec } from "@codemirror/state";
 import {
   EditorView,
   keymap,
@@ -397,7 +397,8 @@ export default function App() {
   useEffect(() => {
     const view = editorViewRef.current;
     if (!view) return;
-    const keys = keymap.of([
+    const keys = Prec.high(
+      keymap.of([
       {
         key: "Tab",
         run: () => {
@@ -414,7 +415,8 @@ export default function App() {
           return true;
         }
       }
-    ]);
+      ])
+    );
     view.dispatch({
       effects: tabKeymapCompartmentRef.current.reconfigure(keys)
     });
