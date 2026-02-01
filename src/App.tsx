@@ -1755,6 +1755,17 @@ export default function App() {
                 onChange={(event) => setShowLineNumbers(event.target.checked)}
               />
             </div>
+            <div className="settings-panel__section settings-panel__section--row">
+              <label className="settings-panel__label" htmlFor="split-view-toggle">
+                Split view
+              </label>
+              <input
+                id="split-view-toggle"
+                type="checkbox"
+                checked={splitView}
+                onChange={(event) => setSplitView(event.target.checked)}
+              />
+            </div>
             <div className="settings-panel__section">
               <label className="settings-panel__label" htmlFor="text-size">
                 Text size
