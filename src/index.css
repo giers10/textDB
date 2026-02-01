@@ -297,10 +297,6 @@ body:not([data-theme="light"]) .folder-item {
   background: var(--bg-contrast);
 }
 
-.folder-item:hover {
-  border-color: transparent;
-}
-
 .folder-item__toggle {
   width: 18px;
   height: 18px;
