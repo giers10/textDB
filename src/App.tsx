@@ -178,7 +178,7 @@ export default function App() {
 
 
   useEffect(() => {
-    document.body.dataset.theme = theme;
+    document.body.dataset.theme = theme === "dark" ? "default" : "light";
     localStorage.setItem("textdb.theme", theme);
   }, [theme]);
 
