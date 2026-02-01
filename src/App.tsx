@@ -413,7 +413,7 @@ export default function App() {
     const view = editorViewRef.current;
     if (!view) return;
     view.requestMeasure();
-  }, [markdownPreview, textSize, sidebarCollapsed, historyOpen]);
+  }, [markdownPreview, splitView, textSize, sidebarCollapsed, historyOpen]);
 
 
   const refreshTexts = useCallback(async () => {
