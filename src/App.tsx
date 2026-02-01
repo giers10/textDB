@@ -1170,7 +1170,7 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [confirmState, editingFolderId, editingTextId, handleSaveVersion, selectedTextId, settingsOpen]);
 
-  const renderTextItem = (text: Text, parentFolderId: string | null) => (
+  const renderTextItem = (text: Text) => (
     <div
       key={text.id}
       className={`prompt-item${text.id === selectedTextId ? " is-active" : ""}`}
@@ -1307,7 +1307,7 @@ export default function App() {
         {expanded ? (
           <div className="folder-children">
             {childFolders.map((child) => renderFolder(child))}
-            {childTexts.map((text) => renderTextItem(text, folder.id))}
+            {childTexts.map((text) => renderTextItem(text))}
           </div>
         ) : null}
       </div>
@@ -1363,7 +1363,7 @@ export default function App() {
               <>
                 {(foldersByParent.get(null) ?? []).map((folder) => renderFolder(folder))}
                 {(textsByFolder.get(null) ?? []).map((text) =>
-                  renderTextItem(text, null)
+                  renderTextItem(text)
                 )}
               </>
             )}
