@@ -358,15 +358,23 @@ body {
   position: relative;
 }
 
-.folder-children::before {
+.folder-children > * {
+  position: relative;
+}
+
+.folder-children > *::after {
   content: "";
   position: absolute;
-  left: 6px;
-  top: 0;
-  bottom: 0;
+  left: -12px;
+  top: -10px;
+  bottom: -10px;
   width: 2px;
   background: var(--border);
   opacity: 0.5;
+}
+
+.folder-children > :last-child::after {
+  bottom: 50%;
 }
 
 .folder-children .folder-item::before,
