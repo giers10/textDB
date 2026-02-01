@@ -591,6 +591,19 @@ body:not([data-theme="light"]) .folder-item {
   border-color: transparent;
 }
 
+.editor__textarea-wrap--split {
+  flex-direction: row;
+}
+
+.editor__textarea-wrap--split .editor__codemirror {
+  flex: 1;
+  border-right: 1px solid var(--border);
+}
+
+.editor__textarea-wrap--split .markdown-preview {
+  flex: 1;
+}
+
 .editor__textarea-wrap:focus-within {
   border-color: rgba(255, 255, 255, 0.18);
 }
