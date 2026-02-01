@@ -470,54 +470,52 @@ export default function App() {
     }
   }, [defaultLineHeight, measureTick, showLineNumbersActive, sidebarCollapsed, historyOpen, textSize]);
 
-  useEffect(() => {
-    if (!showLineNumbersActive) return;
-    fenwickRef.current.reset(lineCount);
-    lineHeightsRef.current = new Array(lineCount).fill(0);
-    setLineNumbersVersion((version) => version + 1);
-    updateVisibleRange();
-  }, [defaultLineHeight, lineCount, measureTick, showLineNumbersActive, textSize, updateVisibleRange]);
-
-  useLayoutEffect(() => {
+  const computeLineMetrics = useCallback(() => {
     if (!showLineNumbersActive || !defaultLineHeight) return;
     const textarea = textareaRef.current;
-    const measureContainer = measureRef.current;
-    const measureLine = measureLineRef.current;
-    if (!textarea || !measureContainer || !measureLine) return;
-    measureContainer.style.width = `${textarea.clientWidth}px`;
-    if (visibleRange.end < visibleRange.start) return;
-    let changed = false;
-    for (let i = visibleRange.start; i <= visibleRange.end; i += 1) {
-      const lineText = lines[i] ?? "";
-      measureLine.textContent = lineText.length > 0 ? lineText : " ";
-      const height = Math.ceil(measureLine.getBoundingClientRect().height);
-      const prev = lineHeightsRef.current[i] || 0;
-      const base = prev || defaultLineHeight;
-      if (height > 0 && height !== prev) {
-        lineHeightsRef.current[i] = height;
-        fenwickRef.current.add(i, height - base);
-        changed = true;
-      }
+    if (!textarea) return;
+    const styles = window.getComputedStyle(textarea);
+    const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+    const paddingRight = parseFloat(styles.paddingRight) || 0;
+    const contentWidth = Math.max(1, textarea.clientWidth - paddingLeft - paddingRight);
+    let canvas = measureCanvasRef.current;
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      measureCanvasRef.current = canvas;
     }
-    if (changed) {
-      setLineNumbersVersion((version) => version + 1);
-      scheduleUpdateVisibleRange();
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.font = styles.font;
+    const charWidth = context.measureText("M").width || 1;
+    const columns = Math.max(1, Math.floor(contentWidth / charWidth));
+    const heights = new Array(lineCount);
+    const tops = new Array(lineCount + 1);
+    tops[0] = 0;
+    for (let i = 0; i < lineCount; i += 1) {
+      const length = lines[i]?.length ?? 0;
+      const wraps = Math.max(1, Math.ceil(length / columns));
+      const height = wraps * defaultLineHeight;
+      heights[i] = height;
+      tops[i + 1] = tops[i] + height;
     }
+    lineHeightsRef.current = heights;
+    lineTopsRef.current = tops;
+    setLineNumbersVersion((version) => version + 1);
+    updateVisibleRange();
     if (lineNumbersRef.current) {
       lineNumbersRef.current.scrollTop = textarea.scrollTop;
     }
   }, [
     defaultLineHeight,
+    lineCount,
     lines,
-    measureTick,
-    scheduleUpdateVisibleRange,
     showLineNumbersActive,
-    sidebarCollapsed,
-    historyOpen,
-    textSize,
-    visibleRange.end,
-    visibleRange.start
+    updateVisibleRange
   ]);
+
+  useEffect(() => {
+    computeLineMetrics();
+  }, [computeLineMetrics, measureTick, sidebarCollapsed, historyOpen, textSize]);
 
   useEffect(() => {
     if (showLineNumbersActive && textareaRef.current && lineNumbersRef.current) {
