@@ -1660,11 +1660,6 @@ export default function App() {
                 }`}
               >
                 {showLineNumbersActive ? (
-                  <div className="line-measure" ref={measureRef} aria-hidden="true">
-                    <div className="line-measure__line" ref={measureLineRef} />
-                  </div>
-                ) : null}
-                {showLineNumbersActive ? (
                   <div className="line-numbers" ref={lineNumbersRef}>
                     <div
                       className="line-numbers__inner"
