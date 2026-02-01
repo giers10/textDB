@@ -312,6 +312,7 @@ body:not([data-theme="light"]) .folder-item {
   color: var(--muted);
   cursor: pointer;
   padding: 0;
+  margin-left: -4px;
   font-size: 1.2rem;
 }
 
