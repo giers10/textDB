@@ -1442,15 +1442,30 @@ export default function App() {
       <main className="workspace">
         <div className="workspace__body">
           {!selectedTextId ? (
-            <div className="empty-state">
-              <div className="empty-state__title">Create your first text</div>
-              <div className="empty-state__subtitle">
-                Everything stays offline in a single SQLite database.
+            <>
+              <div className="empty-state">
+                <div className="empty-state__title">Create your first text</div>
+                <div className="empty-state__subtitle">
+                  Everything stays offline in a single SQLite database.
+                </div>
+                <button className="button button--primary" onClick={handleNewText}>
+                  New Text
+                </button>
               </div>
-              <button className="button button--primary" onClick={handleNewText}>
-                New Text
-              </button>
-            </div>
+              {sidebarCollapsed ? (
+                <div className="editor__footer">
+                  <button
+                    className="icon-button"
+                    onClick={() => setSidebarCollapsed(false)}
+                    aria-label="Expand sidebar"
+                    title="Expand sidebar"
+                    type="button"
+                  >
+                    <span className="icon-button__glyph" aria-hidden="true">▶</span>
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : (
             <div
               className={`workspace__content${
