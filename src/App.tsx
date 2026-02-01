@@ -334,25 +334,27 @@ export default function App() {
 
   const getLineTop = useCallback(
     (index: number) => {
-      if (!defaultLineHeight) return 0;
-      return index * defaultLineHeight + fenwickRef.current.sum(index);
+      const tops = lineTopsRef.current;
+      return tops[index] ?? 0;
     },
-    [defaultLineHeight, lineNumbersVersion]
+    [lineNumbersVersion]
   );
 
   const getTotalHeight = useCallback(() => {
-    if (!defaultLineHeight) return 0;
-    return lineCount * defaultLineHeight + fenwickRef.current.sum(lineCount);
-  }, [defaultLineHeight, lineCount, lineNumbersVersion]);
+    const tops = lineTopsRef.current;
+    return tops[lineCount] ?? 0;
+  }, [lineCount, lineNumbersVersion]);
 
   const findLineAtOffset = useCallback(
     (offset: number) => {
-      if (!defaultLineHeight || lineCount === 0) return 0;
+      if (lineCount === 0) return 0;
+      const tops = lineTopsRef.current;
+      if (tops.length === 0) return 0;
       let low = 0;
       let high = lineCount;
       while (low < high) {
         const mid = Math.floor((low + high) / 2);
-        if (getLineTop(mid + 1) <= offset) {
+        if ((tops[mid + 1] ?? 0) <= offset) {
           low = mid + 1;
         } else {
           high = mid;
@@ -360,7 +362,7 @@ export default function App() {
       }
       return Math.min(Math.max(0, low), Math.max(0, lineCount - 1));
     },
-    [defaultLineHeight, getLineTop, lineCount]
+    [lineCount]
   );
 
   const updateVisibleRange = useCallback(() => {
