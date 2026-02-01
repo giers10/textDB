@@ -797,6 +797,39 @@ export default function App() {
     [refreshTexts, selectedTextId]
   );
 
+  const isQuickDeleteText = useCallback(
+    async (text: Text) => {
+      if ((text.title || "").trim() !== DEFAULT_TITLE) return false;
+      if (text.id === selectedTextId && body.trim().length > 0) return false;
+
+      const draft = await getDraft(text.id);
+      if (draft) return false;
+
+      const versions = await listVersions(text.id);
+      if (versions.length === 0) return true;
+      if (versions.length > 1) return false;
+      return versions[0].body.trim().length === 0;
+    },
+    [body, selectedTextId]
+  );
+
+  const requestDeleteText = useCallback(
+    async (text: Text) => {
+      const skipConfirm = await isQuickDeleteText(text);
+      if (skipConfirm) {
+        await handleDeleteText(text.id);
+        return;
+      }
+      setConfirmState({
+        title: "Delete text",
+        message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
+        actionLabel: "Delete text",
+        onConfirm: () => handleDeleteText(text.id)
+      });
+    },
+    [handleDeleteText, isQuickDeleteText]
+  );
+
   const handleDeleteFolder = useCallback(
     async (folderId: string) => {
       await deleteFolder(folderId);
@@ -811,6 +844,23 @@ export default function App() {
       }
     },
     [clearFolderEditing, editingFolderId, refreshFolders, refreshTexts]
+  );
+
+  const requestDeleteFolder = useCallback(
+    async (folder: Folder) => {
+      if (isFolderEmpty(folder.id)) {
+        await handleDeleteFolder(folder.id);
+        return;
+      }
+      setConfirmState({
+        title: "Delete folder",
+        message:
+          "Delete this folder? Its subfolders and texts will move one level up.",
+        actionLabel: "Delete folder",
+        onConfirm: () => handleDeleteFolder(folder.id)
+      });
+    },
+    [handleDeleteFolder, isFolderEmpty]
   );
 
   const handleTextContextMenu = useCallback(
