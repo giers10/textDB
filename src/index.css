@@ -109,15 +109,17 @@ body {
 
 .sidebar__footer {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   margin-top: auto;
   padding-left: 24px;
   padding-right: 24px;
 }
 
-.sidebar__footer .button {
-  width: 100%;
+.sidebar__footer .icon-button {
+  width: 36px;
+  height: 36px;
 }
 
 .app-title {
@@ -407,7 +409,7 @@ body:not([data-theme="light"]) .folder-item {
 }
 
 .workspace {
-  padding: 28px 32px;
+  padding: 16px 32px;
   height: 100%;
   overflow: hidden;
   position: relative;
