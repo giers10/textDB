@@ -1539,14 +1539,11 @@ export default function App() {
                   markdownPreview ? " editor__textarea-wrap--preview" : ""
                 }`}
               >
-                <textarea
-                  ref={textareaRef}
-                  id="editor-textarea"
-                  className={`editor__textarea${markdownPreview ? " editor__textarea--hidden" : ""}`}
-                  value={body}
-                  onChange={(event) => setBody(event.target.value)}
-                  placeholder="Write your text here…"
-                  readOnly={isViewingHistory || markdownPreview}
+                <div
+                  ref={editorHostRef}
+                  className={`editor__codemirror${
+                    markdownPreview ? " editor__codemirror--hidden" : ""
+                  }`}
                 />
                 <div
                   className={`markdown-preview md-root${markdownPreview ? "" : " markdown-preview--hidden"}`}
