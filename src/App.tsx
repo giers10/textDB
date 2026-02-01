@@ -1742,10 +1742,10 @@ export default function App() {
                 className="settings-panel__select"
                 value={theme}
                 onChange={(event) =>
-                  setTheme(event.target.value as "default" | "light")
+                  setTheme(event.target.value as "dark" | "light")
                 }
               >
-                <option value="default">Default</option>
+                <option value="dark">Dark</option>
                 <option value="light">Bright</option>
               </select>
             </div>
