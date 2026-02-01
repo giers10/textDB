@@ -639,7 +639,7 @@ body:not([data-theme="light"]) .folder-item {
   background: transparent;
   color: var(--ink);
   font-family: "SF Mono", "Menlo", "Consolas", monospace;
-  font-size: 0.95rem;
+  font-size: var(--base-font-size);
   line-height: 1.5;
 }
 
