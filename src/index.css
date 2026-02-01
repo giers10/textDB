@@ -281,7 +281,7 @@ body {
 .folder-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 6px 12px;
   border-radius: 14px;
   border: 1px solid transparent;
@@ -315,12 +315,17 @@ body:not([data-theme="light"]) .folder-item {
   font-size: 1.2rem;
 }
 
+.folder-item__lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .folder-item__icon {
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
   display: block;
-  margin-left: -4px;
 }
 
 .folder-item__title {
