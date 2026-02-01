@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.1",
-    "@codemirror/history": "^0.19.2",
     "@codemirror/state": "^6.5.4",
     "@codemirror/view": "^6.39.12",
     "@tauri-apps/api": "^2.0.0",
