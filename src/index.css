@@ -314,7 +314,7 @@ body:not([data-theme="light"]) .folder-item {
   padding: 0;
   margin-left: -4px;
   font-size: 1.6rem;
-  transform: translateY(-1px);
+  transform: translateY(-3px);
 }
 
 .folder-item__lead {
