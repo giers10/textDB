@@ -172,8 +172,10 @@ export default function App() {
   const [showLineNumbers, setShowLineNumbers] = useState(() => {
     return localStorage.getItem("textdb.lineNumbers") === "true";
   });
-  const [lineHeights, setLineHeights] = useState<number[]>([]);
   const [measureTick, setMeasureTick] = useState(0);
+  const [defaultLineHeight, setDefaultLineHeight] = useState(0);
+  const [lineNumbersVersion, setLineNumbersVersion] = useState(0);
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: -1 });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
   });
@@ -182,6 +184,10 @@ export default function App() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lineNumbersRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLDivElement | null>(null);
+  const measureLineRef = useRef<HTMLDivElement | null>(null);
+  const lineHeightsRef = useRef<number[]>([]);
+  const fenwickRef = useRef<FenwickTree>(new FenwickTree(0));
+  const scrollRafRef = useRef<number>(0);
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
   const ignoreTextBlurRef = useRef(false);
