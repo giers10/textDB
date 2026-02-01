@@ -7,7 +7,7 @@ TextDB is a **non-destructive**, completely offline, local-first text editor wit
 - Non-destructive editing: immutable manual saves + safe autosaved drafts.
 - Version history panel with quick restore.
 - Markdown preview mode with split view.
-- Convert plain text to Markdown via local Ollama (recommended model: `ministral:3b`).
+- Convert plain text to Markdown manually or via local Ollama (recommended model: `ministral:3b`).
 - Sort your texts in nested folders with expandable tree; move items around via right-click.
 - Open/import `.txt` and `.md` files; export to `.txt` or print / `.pdf`.
 - Settings for theme, text size, and optional display of line numbers in the textarea.
