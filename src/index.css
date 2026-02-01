@@ -1049,6 +1049,14 @@ body[data-theme="light"] .editor__textarea-wrap:focus-within {
     overflow: visible;
   }
 
+  body.print-markdown .editor__codemirror {
+    display: none !important;
+  }
+
+  body.print-markdown .editor__textarea-wrap--split {
+    display: block;
+  }
+
   body.print-markdown .markdown-preview {
     padding: 32px 36px;
     overflow: visible;
