@@ -419,6 +419,25 @@ body:not([data-theme="light"]) .folder-item {
   height: 100%;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.workspace__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace__footer {
+  display: flex;
+  align-items: center;
+}
+
+.workspace__footer .sidebar__footer {
+  padding: 0;
 }
 
 .workspace__topbar {
@@ -442,7 +461,7 @@ body:not([data-theme="light"]) .folder-item {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  height: 100%;
+  flex: 1;
   min-height: 0;
 }
 
