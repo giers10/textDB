@@ -459,9 +459,7 @@ export default function App() {
   useLayoutEffect(() => {
     if (!showLineNumbersActive) return;
     const textarea = textareaRef.current;
-    const measure = measureRef.current;
-    if (!textarea || !measure) return;
-    measure.style.width = `${textarea.clientWidth}px`;
+    if (!textarea) return;
     const computed = window.getComputedStyle(textarea);
     const lineHeight = parseFloat(computed.lineHeight);
     if (Number.isFinite(lineHeight) && lineHeight > 0 && lineHeight !== defaultLineHeight) {
