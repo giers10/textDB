@@ -1355,11 +1355,8 @@ export default function App() {
         className="prompt-item__delete"
         onClick={(event) => {
           event.stopPropagation();
-          setConfirmState({
-            title: "Delete text",
-            message: `Delete \"${text.title}\"? This removes all versions and drafts.`,
-            actionLabel: "Delete text",
-            onConfirm: () => handleDeleteText(text.id)
+          requestDeleteText(text).catch((error) => {
+            console.error("Failed to delete text", error);
           });
         }}
         aria-label="Delete text"
@@ -1436,12 +1433,8 @@ export default function App() {
             className="folder-item__delete"
             onClick={(event) => {
               event.stopPropagation();
-              setConfirmState({
-                title: "Delete folder",
-                message:
-                  "Delete this folder? Its subfolders and texts will move one level up.",
-                actionLabel: "Delete folder",
-                onConfirm: () => handleDeleteFolder(folder.id)
+              requestDeleteFolder(folder).catch((error) => {
+                console.error("Failed to delete folder", error);
               });
             }}
             aria-label="Delete folder"
