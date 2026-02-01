@@ -380,6 +380,10 @@ body:not([data-theme="light"]) .folder-item {
   background: var(--tree-line);
 }
 
+.folder-children > :first-child::after {
+  top: -16px;
+}
+
 .folder-children > :last-child::after {
   bottom: 50%;
 }
