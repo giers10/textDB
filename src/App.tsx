@@ -150,6 +150,9 @@ export default function App() {
   const [showLineNumbers, setShowLineNumbers] = useState(() => {
     return localStorage.getItem("textdb.lineNumbers") === "true";
   });
+  const [splitView, setSplitView] = useState(() => {
+    return localStorage.getItem("textdb.splitView") === "true";
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
   });
@@ -186,6 +189,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("textdb.lineNumbers", String(showLineNumbers));
   }, [showLineNumbers]);
+
+  useEffect(() => {
+    localStorage.setItem("textdb.splitView", String(splitView));
+  }, [splitView]);
 
   useEffect(() => {
     localStorage.setItem(
@@ -238,7 +245,7 @@ export default function App() {
   const isViewingHistory = viewingVersion !== null;
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
   const hasText = body.trim().length > 0;
-  const showLineNumbersActive = showLineNumbers && !markdownPreview;
+  const showLineNumbersActive = showLineNumbers && (!markdownPreview || splitView);
   const hasSearch = search.trim().length > 0;
   const markdownHtml = useMemo(
     () => (markdownPreview ? markdownToHTML(body) : ""),
