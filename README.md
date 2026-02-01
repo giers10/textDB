@@ -12,6 +12,8 @@ TextDB is a **non-destructive**, completely offline, local-first text editor wit
 - Open/import `.txt` and `.md` files; export to `.txt` or print / `.pdf`.
 - Settings for theme, text size, and optional display of line numbers in the textarea.
 
+Ollama: `https://ollama.com`
+
 ## Use cases
 
 - **Non-destructive notepad**: jot ideas without fear of losing earlier thoughts.
