@@ -297,6 +297,11 @@ body {
   position: relative;
 }
 
+body:not([data-theme="light"]) .prompt-item,
+body:not([data-theme="light"]) .folder-item {
+  background: var(--bg-contrast);
+}
+
 .folder-item:hover {
   border-color: transparent;
 }
