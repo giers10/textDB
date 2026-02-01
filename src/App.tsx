@@ -322,95 +322,17 @@ export default function App() {
   const handleTextareaScroll = useCallback(() => {}, []);
 
   useEffect(() => {
-    if (!showLineNumbersActive) return;
     const textarea = textareaRef.current;
-    if (!textarea || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(() => {
-      setMeasureTick((tick) => tick + 1);
-    });
-    observer.observe(textarea);
-    return () => observer.disconnect();
-  }, [showLineNumbersActive]);
-
-  useEffect(() => {
-    if (!showLineNumbersActive) return;
-    let raf = 0;
-    const handleResize = () => {
-      if (raf) cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        setMeasureTick((tick) => tick + 1);
-      });
-    };
-    window.addEventListener("resize", handleResize);
+    if (!textarea) return;
+    if (showLineNumbersActive && !markdownPreview) {
+      appendLineNumbers(textarea);
+    } else {
+      removeLineNumbers(textarea);
+    }
     return () => {
-      window.removeEventListener("resize", handleResize);
-      if (raf) cancelAnimationFrame(raf);
+      removeLineNumbers(textarea);
     };
-  }, [showLineNumbersActive]);
-
-  useLayoutEffect(() => {
-    if (!showLineNumbersActive) return;
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const computed = window.getComputedStyle(textarea);
-    const lineHeight = parseFloat(computed.lineHeight);
-    if (Number.isFinite(lineHeight) && lineHeight > 0 && lineHeight !== defaultLineHeight) {
-      setDefaultLineHeight(lineHeight);
-    }
-  }, [defaultLineHeight, measureTick, showLineNumbersActive, sidebarCollapsed, historyOpen, textSize]);
-
-  const computeLineMetrics = useCallback(() => {
-    if (!showLineNumbersActive || !defaultLineHeight) return;
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const styles = window.getComputedStyle(textarea);
-    const paddingLeft = parseFloat(styles.paddingLeft) || 0;
-    const paddingRight = parseFloat(styles.paddingRight) || 0;
-    const contentWidth = Math.max(1, textarea.clientWidth - paddingLeft - paddingRight);
-    let canvas = measureCanvasRef.current;
-    if (!canvas) {
-      canvas = document.createElement("canvas");
-      measureCanvasRef.current = canvas;
-    }
-    const context = canvas.getContext("2d");
-    if (!context) return;
-    context.font = styles.font;
-    const charWidth = context.measureText("M").width || 1;
-    const columns = Math.max(1, Math.floor(contentWidth / charWidth));
-    const heights = new Array(lineCount);
-    const tops = new Array(lineCount + 1);
-    tops[0] = 0;
-    for (let i = 0; i < lineCount; i += 1) {
-      const length = lines[i]?.length ?? 0;
-      const wraps = Math.max(1, Math.ceil(length / columns));
-      const height = wraps * defaultLineHeight;
-      heights[i] = height;
-      tops[i + 1] = tops[i] + height;
-    }
-    lineHeightsRef.current = heights;
-    lineTopsRef.current = tops;
-    setLineNumbersVersion((version) => version + 1);
-    updateVisibleRange();
-    if (lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = textarea.scrollTop;
-    }
-  }, [
-    defaultLineHeight,
-    lineCount,
-    lines,
-    showLineNumbersActive,
-    updateVisibleRange
-  ]);
-
-  useEffect(() => {
-    computeLineMetrics();
-  }, [computeLineMetrics, measureTick, sidebarCollapsed, historyOpen, textSize]);
-
-  useEffect(() => {
-    if (showLineNumbersActive && textareaRef.current && lineNumbersRef.current) {
-      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
-    }
-  }, [showLineNumbersActive, body]);
+  }, [markdownPreview, showLineNumbersActive]);
 
 
   const refreshTexts = useCallback(async () => {
