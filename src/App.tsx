@@ -334,6 +334,13 @@ export default function App() {
     };
   }, [markdownPreview, showLineNumbersActive]);
 
+  useEffect(() => {
+    if (!showLineNumbersActive || markdownPreview) return;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    refreshLineNumbers(textarea);
+  }, [body, markdownPreview, showLineNumbersActive]);
+
 
   const refreshTexts = useCallback(async () => {
     setLoadingTexts(true);
