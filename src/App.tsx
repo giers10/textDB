@@ -153,7 +153,6 @@ export default function App() {
   const bodyRef = useRef(body);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lineNumbersRef = useRef<HTMLDivElement | null>(null);
-  const measureRef = useRef<HTMLDivElement | null>(null);
   const lineHeightsRef = useRef<number[]>([]);
   const lineTopsRef = useRef<number[]>([]);
   const measureCanvasRef = useRef<HTMLCanvasElement | null>(null);
