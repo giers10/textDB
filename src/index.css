@@ -644,12 +644,50 @@ body:not([data-theme="light"]) .folder-item {
   outline: none;
 }
 
+.editor__textarea--hidden {
+  display: none;
+}
+
+.editor__textarea-wrap--preview .tln-wrapper {
+  display: none;
+}
+
+.tln-wrapper {
+  padding: 14px 10px;
+  min-width: 3ch;
+  text-align: right;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--bg-contrast);
+  border-right: 1px solid var(--border);
+  user-select: none;
+  overflow: hidden;
+  counter-reset: line;
+}
+
+.tln-line {
+  display: block;
+  height: 1.5em;
+}
+
+.tln-line::before {
+  counter-increment: line;
+  content: counter(line);
+  font-variant-numeric: tabular-nums;
+}
+
 .markdown-preview {
   flex: 1;
   width: 100%;
   overflow-y: auto;
   padding: 14px;
   color: var(--ink);
+}
+
+.markdown-preview--hidden {
+  display: none;
 }
 
 .editor__footer {
