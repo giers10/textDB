@@ -80,36 +80,6 @@ type HistoryEntry = {
   baseVersionId?: string | null;
 };
 
-class FenwickTree {
-  private size: number;
-  private tree: Float64Array;
-
-  constructor(size: number) {
-    this.size = size;
-    this.tree = new Float64Array(size + 1);
-  }
-
-  reset(size: number) {
-    this.size = size;
-    this.tree = new Float64Array(size + 1);
-  }
-
-  add(index: number, delta: number) {
-    if (!Number.isFinite(delta) || delta === 0) return;
-    for (let i = index + 1; i <= this.size; i += i & -i) {
-      this.tree[i] += delta;
-    }
-  }
-
-  sum(index: number) {
-    let result = 0;
-    for (let i = index; i > 0; i -= i & -i) {
-      result += this.tree[i];
-    }
-    return result;
-  }
-}
-
 type SidebarEntry =
   | { kind: "folder"; item: Folder }
   | { kind: "text"; item: Text };
