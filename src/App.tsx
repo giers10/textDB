@@ -178,7 +178,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 export default function App() {
   const [texts, setTexts] = useState<Text[]>([]);
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [textSearch, setTextSearch] = useState("");
   const [loadingTexts, setLoadingTexts] = useState(true);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [loadingFolders, setLoadingFolders] = useState(true);
@@ -370,7 +370,7 @@ export default function App() {
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
   const hasText = body.trim().length > 0;
   const showLineNumbersActive = showLineNumbers && (!markdownPreview || splitView);
-  const hasSearch = search.trim().length > 0;
+  const hasSearch = textSearch.trim().length > 0;
   const documentStats = useMemo(() => getDocumentStats(body), [body]);
   const markdownHtml = useMemo(
     () => (markdownPreview ? markdownToHTML(body) : ""),
@@ -633,13 +633,13 @@ export default function App() {
   const refreshTexts = useCallback(async () => {
     setLoadingTexts(true);
     try {
-      const trimmed = search.trim();
+      const trimmed = textSearch.trim();
       const rows = trimmed ? await searchTexts(trimmed) : await listTexts();
       setTexts(rows);
     } finally {
       setLoadingTexts(false);
     }
-  }, [search]);
+  }, [textSearch]);
 
   const refreshFolders = useCallback(async () => {
     setLoadingFolders(true);
@@ -1798,8 +1798,8 @@ export default function App() {
             <input
               className="search"
               placeholder="Search texts"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              value={textSearch}
+              onChange={(event) => setTextSearch(event.target.value)}
             />
           </div>
           <div className="prompt-list">
