@@ -179,14 +179,54 @@ export function markdownToHTML(text) {
     return '';
   };
 
-  html = html.replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, (_, label, href) => {
-    const url = safeLink(href);
-    const tooltip = escapeHtml(href || '');
+  const renderExternalLink = (label, hrefRaw) => {
+    const url = safeLink(hrefRaw);
+    const tooltip = escapeHtml(hrefRaw || '');
     if (!url) return label;
     return `<a class="md-link md-link--external" href="${escapeAttr(
       url
     )}" target="_blank" rel="noreferrer noopener"><span class="md-link__label">${label}</span> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="md-icon md-icon-external"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg><span class="md-link__tooltip">${tooltip}</span></a>`;
+  };
+
+  html = html.replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, (_, label, href) => {
+    return renderExternalLink(label, href);
   });
+
+  const autoLinkPlainUrls = (source) => {
+    const protectedChunkRe = /(<a\b[\s\S]*?<\/a>|<code>[\s\S]*?<\/code>|@@CODEBLOCK\d+@@)/g;
+    const isProtectedChunk = /^(<a\b[\s\S]*<\/a>|<code>[\s\S]*<\/code>|@@CODEBLOCK\d+@@)$/;
+    const trimTrailingPunctuation = (value) => {
+      let linked = value;
+      let trailing = '';
+      while (linked.length > 0) {
+        const last = linked[linked.length - 1];
+        if (!/[)\].,!?;:]/.test(last)) break;
+        if (last === ')') {
+          const opens = (linked.match(/\(/g) || []).length;
+          const closes = (linked.match(/\)/g) || []).length;
+          if (closes <= opens) break;
+        }
+        linked = linked.slice(0, -1);
+        trailing = last + trailing;
+      }
+      return { linked, trailing };
+    };
+
+    return source
+      .split(protectedChunkRe)
+      .map((part) => {
+        if (!part || isProtectedChunk.test(part)) return part;
+        return part.replace(/(^|[\s(>])((?:https?:\/\/|www\.)[^\s<]+)/g, (_, lead, rawUrl) => {
+          const { linked, trailing } = trimTrailingPunctuation(rawUrl);
+          if (!linked) return `${lead}${rawUrl}`;
+          const href = /^www\./i.test(linked) ? `https://${linked}` : linked;
+          return `${lead}${renderExternalLink(linked, href)}${trailing}`;
+        });
+      })
+      .join('');
+  };
+
+  html = autoLinkPlainUrls(html);
 
   // 6) Convert line-breaks to HTML paragraphs and <br /> inside paragraphs
   const linesWithHtml = html.split("\n");

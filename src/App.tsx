@@ -10,6 +10,13 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { Compartment, EditorState, Transaction } from "@codemirror/state";
 import {
+  closeSearchPanel,
+  openSearchPanel,
+  search,
+  searchKeymap,
+  searchPanelOpen
+} from "@codemirror/search";
+import {
   EditorView,
   keymap,
   lineNumbers,
@@ -88,6 +95,20 @@ type HistoryEntry = {
   baseVersionId?: string | null;
 };
 
+type ConversionJob = {
+  sourceTextId: string;
+  sourceTitle: string;
+  sourceBody: string;
+  controller: AbortController;
+};
+
+type DocumentStats = {
+  characters: number;
+  words: number;
+  sentences: number;
+  estimatedTokens: number;
+};
+
 type SidebarEntry =
   | { kind: "folder"; item: Folder }
   | { kind: "text"; item: Text };
@@ -100,6 +121,59 @@ Do not change or omit any content.
 Only add Markdown structure (such as headings, lists, code blocks, tables, quotes, links, bold, italics, etc.) where appropriate, based on the meaning and structure of the original text.
 Keep the content itself unaltered and do not translate, summarize or rephrase. Only use your Markdown-formatting skills.
 Text:`;
+
+const graphemeSegmenter =
+  typeof Intl !== "undefined" && "Segmenter" in Intl
+    ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
+    : null;
+const wordSegmenter =
+  typeof Intl !== "undefined" && "Segmenter" in Intl
+    ? new Intl.Segmenter(undefined, { granularity: "word" })
+    : null;
+const sentenceSegmenter =
+  typeof Intl !== "undefined" && "Segmenter" in Intl
+    ? new Intl.Segmenter(undefined, { granularity: "sentence" })
+    : null;
+
+function getDocumentStats(text: string): DocumentStats {
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const characters = graphemeSegmenter
+    ? Array.from(graphemeSegmenter.segment(normalized)).length
+    : Array.from(normalized).length;
+  const words = wordSegmenter
+    ? Array.from(wordSegmenter.segment(normalized)).filter((segment) => segment.isWordLike).length
+    : (normalized.match(/\b[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) ?? []).length;
+  const sentences = sentenceSegmenter
+    ? Array.from(sentenceSegmenter.segment(normalized)).filter(
+        (segment) => segment.segment.trim().length > 0
+      ).length
+    : (normalized.match(/[^.!?]+(?:[.!?]+|$)/g) ?? [])
+        .map((segment) => segment.trim())
+        .filter(Boolean).length;
+
+  return {
+    characters,
+    words,
+    sentences,
+    estimatedTokens: Math.round((words * 4) / 3)
+  };
+}
+
+function getImportedTitle(filePath: string) {
+  const filename = filePath.split(/[\\/]/).pop()?.trim() || DEFAULT_TITLE;
+  const lastDot = filename.lastIndexOf(".");
+  if (lastDot <= 0) return filename || DEFAULT_TITLE;
+  const stripped = filename.slice(0, lastDot).trim();
+  return stripped || filename || DEFAULT_TITLE;
+}
+
+function getFileLabel(filePath: string) {
+  return filePath.split(/[\\/]/).pop()?.trim() || filePath;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
 
 export default function App() {
   const [texts, setTexts] = useState<Text[]>([]);
@@ -176,24 +250,31 @@ export default function App() {
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [ollamaLoading, setOllamaLoading] = useState(false);
   const [ollamaError, setOllamaError] = useState<string | null>(null);
-  const [isConverting, setIsConverting] = useState(false);
+  const [conversionJob, setConversionJob] = useState<ConversionJob | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem("textdb.sidebarCollapsed") === "true";
   });
   const [editorReady, setEditorReady] = useState(false);
 
   const bodyRef = useRef(body);
+  const selectedTextIdRef = useRef<string | null>(selectedTextId);
+  const historyOpenRef = useRef(historyOpen);
+  const viewingVersionRef = useRef<HistoryEntry | null>(viewingVersion);
   const editorViewRef = useRef<EditorView | null>(null);
   const editorValueRef = useRef("");
   const lineNumbersCompartmentRef = useRef(new Compartment());
   const editableCompartmentRef = useRef(new Compartment());
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
+  const searchRestoreSplitRef = useRef<boolean | null>(null);
   const ignoreTextBlurRef = useRef(false);
   const ignoreFolderBlurRef = useRef(false);
 
 
   bodyRef.current = body;
+  selectedTextIdRef.current = selectedTextId;
+  historyOpenRef.current = historyOpen;
+  viewingVersionRef.current = viewingVersion;
 
 
   useEffect(() => {
@@ -258,10 +339,16 @@ export default function App() {
       extensions: [
         EditorView.lineWrapping,
         history(),
-        keymap.of([...defaultKeymap, ...historyKeymap]),
+        search(),
+        keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
         lineNumbersCompartmentRef.current.of([]),
         editableCompartmentRef.current.of(EditorView.editable.of(true)),
         EditorView.updateListener.of((update) => {
+          if (!searchPanelOpen(update.state) && searchRestoreSplitRef.current !== null) {
+            const nextSplitView = searchRestoreSplitRef.current;
+            searchRestoreSplitRef.current = null;
+            setSplitView(nextSplitView);
+          }
           if (!update.docChanged) return;
           const value = update.state.doc.toString();
           editorValueRef.current = value;
@@ -279,10 +366,12 @@ export default function App() {
   }, []);
 
   const isViewingHistory = viewingVersion !== null;
+  const isConverting = conversionJob !== null;
   const isDirty = !isViewingHistory && body !== lastPersistedBody;
   const hasText = body.trim().length > 0;
   const showLineNumbersActive = showLineNumbers && (!markdownPreview || splitView);
   const hasSearch = search.trim().length > 0;
+  const documentStats = useMemo(() => getDocumentStats(body), [body]);
   const markdownHtml = useMemo(
     () => (markdownPreview ? markdownToHTML(body) : ""),
     [body, markdownPreview]
@@ -435,6 +524,31 @@ export default function App() {
     });
   }, [markdownPreview]);
 
+  const openDocumentSearch = useCallback(() => {
+    if (!selectedTextIdRef.current) return false;
+
+    const revealEditor = markdownPreview && !splitView;
+    if (revealEditor) {
+      searchRestoreSplitRef.current = false;
+      setSplitView(true);
+    } else {
+      searchRestoreSplitRef.current = null;
+    }
+
+    window.requestAnimationFrame(() => {
+      const view = editorViewRef.current;
+      if (!view) return;
+      openSearchPanel(view);
+      view.focus();
+    });
+
+    return true;
+  }, [markdownPreview, splitView]);
+
+  const handleCancelConversion = useCallback(() => {
+    conversionJob?.controller.abort();
+  }, [conversionJob]);
+
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
     if (isDirty) return "unsaved";
@@ -456,6 +570,13 @@ export default function App() {
         return "Saved";
     }
   }, [statusKey]);
+  const conversionLabel = useMemo(() => {
+    if (!conversionJob) return null;
+    if (conversionJob.sourceTextId === selectedTextId) {
+      return "Converting Markdown";
+    }
+    return `Converting ${conversionJob.sourceTitle}`;
+  }, [conversionJob, selectedTextId]);
 
   const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
   const folderIconSrc = theme === "light" ? folderIconBright : folderIcon;
@@ -552,11 +673,12 @@ export default function App() {
     });
   }, []);
 
-  const refreshVersions = useCallback(async () => {
-    if (!selectedTextId || !historyOpen) return;
+  const refreshVersions = useCallback(async (targetTextId?: string | null) => {
+    const textId = targetTextId ?? selectedTextIdRef.current;
+    if (!textId || !historyOpenRef.current) return;
     const [manualRows, draft] = await Promise.all([
-      listVersions(selectedTextId),
-      getDraft(selectedTextId)
+      listVersions(textId),
+      getDraft(textId)
     ]);
     const manualItems: HistoryEntry[] = manualRows.map((row) => ({
       id: row.id,
@@ -567,7 +689,7 @@ export default function App() {
     const draftItem: HistoryEntry[] = draft
       ? [
           {
-            id: `draft:${selectedTextId}`,
+            id: `draft:${textId}`,
             created_at: draft.updated_at,
             kind: "draft",
             body: draft.body,
@@ -579,7 +701,7 @@ export default function App() {
       (a, b) => b.created_at - a.created_at
     );
     setHistoryItems(combined);
-  }, [historyOpen, selectedTextId]);
+  }, []);
 
   const handleConvertToMarkdown = useCallback(async () => {
     if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
@@ -592,13 +714,23 @@ export default function App() {
       });
       return;
     }
+    const controller = new AbortController();
     const prompt = (ollamaPrompt || DEFAULT_OLLAMA_PROMPT).trim();
-    const fullPrompt = `${prompt}\n${body}`;
-    setIsConverting(true);
+    const sourceTextId = selectedTextId;
+    const sourceBody = body;
+    const sourceTitle = title.trim() || DEFAULT_TITLE;
+    const fullPrompt = `${prompt}\n${sourceBody}`;
+    setConversionJob({
+      sourceTextId,
+      sourceTitle,
+      sourceBody,
+      controller
+    });
     try {
       const response = await fetch(`${normalizedOllamaUrl}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           model: ollamaModel,
           prompt: fullPrompt,
@@ -613,26 +745,57 @@ export default function App() {
       if (!resultText) {
         throw new Error("Ollama returned an empty response.");
       }
-      const normalizedTitle = title.trim() || DEFAULT_TITLE;
-      const result = await saveManualVersion(
-        selectedTextId,
-        normalizedTitle,
-        resultText
-      );
-      setBody(resultText);
-      setLastPersistedBody(resultText);
-      setLastPersistedTitle(normalizedTitle);
-      setHasDraft(false);
-      setRestoredDraft(false);
-      setLatestManualVersionId(result.versionId);
-      setDraftBaseVersionId(result.versionId);
-      setSelectedHistoryId(result.versionId);
-      setViewingVersion(null);
-      historySnapshotRef.current = null;
-      setMarkdownPreview(true);
+      if (controller.signal.aborted) {
+        return;
+      }
+      const currentText = await getText(sourceTextId);
+      const normalizedTitle = currentText?.title?.trim() || sourceTitle;
+      if (controller.signal.aborted) {
+        return;
+      }
+      const result = await saveManualVersion(sourceTextId, normalizedTitle, resultText);
+      const hasLiveEditsOnSource =
+        selectedTextIdRef.current === sourceTextId &&
+        viewingVersionRef.current === null &&
+        bodyRef.current !== sourceBody;
+
+      const canApplyToVisibleEditor =
+        selectedTextIdRef.current === sourceTextId &&
+        viewingVersionRef.current === null &&
+        !hasLiveEditsOnSource;
+
+      if (hasLiveEditsOnSource) {
+        const currentBody = bodyRef.current;
+        await upsertDraft(sourceTextId, currentBody, result.versionId);
+        setHasDraft(true);
+        setLastPersistedBody(currentBody);
+        setLatestManualVersionId(result.versionId);
+        setDraftBaseVersionId(result.versionId);
+        setSelectedHistoryId(`draft:${sourceTextId}`);
+      }
+
+      if (canApplyToVisibleEditor) {
+        setBody(resultText);
+        setLastPersistedBody(resultText);
+        setLastPersistedTitle(normalizedTitle);
+        setHasDraft(false);
+        setRestoredDraft(false);
+        setLatestManualVersionId(result.versionId);
+        setDraftBaseVersionId(result.versionId);
+        setSelectedHistoryId(result.versionId);
+        setViewingVersion(null);
+        historySnapshotRef.current = null;
+        setMarkdownPreview(true);
+      }
+
       await refreshTexts();
-      await refreshVersions();
+      if (selectedTextIdRef.current === sourceTextId && historyOpenRef.current) {
+        await refreshVersions(sourceTextId);
+      }
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        return;
+      }
       console.error("Failed to convert with Ollama", error);
       setConfirmState({
         title: "Ollama error",
@@ -641,7 +804,9 @@ export default function App() {
         onConfirm: () => {}
       });
     } finally {
-      setIsConverting(false);
+      setConversionJob((current) =>
+        current?.controller === controller ? null : current
+      );
     }
   }, [
     body,
@@ -687,10 +852,15 @@ export default function App() {
     refreshVersions().catch((error) => {
       console.error("Failed to load versions", error);
     });
-  }, [historyOpen, refreshVersions]);
+  }, [historyOpen, refreshVersions, selectedTextId]);
 
   useEffect(() => {
     if (!selectedTextId) {
+      const view = editorViewRef.current;
+      if (view) {
+        closeSearchPanel(view);
+      }
+      searchRestoreSplitRef.current = null;
       setTitle("");
       setLastPersistedTitle("");
       setBody("");
@@ -701,7 +871,6 @@ export default function App() {
       setDraftBaseVersionId(null);
       setViewingVersion(null);
       setSelectedHistoryId(null);
-      setMarkdownPreview(false);
       historySnapshotRef.current = null;
       return;
     }
@@ -738,7 +907,6 @@ export default function App() {
       setSelectedHistoryId(
         draft ? `draft:${selectedTextId}` : manualVersion?.id ?? null
       );
-      setMarkdownPreview(false);
       historySnapshotRef.current = null;
     };
 
@@ -1112,14 +1280,26 @@ export default function App() {
   const createTextFromFile = useCallback(
     async (filePath: string) => {
       try {
-        const filename = filePath.split(/[\/]/).pop() || DEFAULT_TITLE;
-        const title = filename.replace(/\.(txt|md)$/i, "") || DEFAULT_TITLE;
+        const title = getImportedTitle(filePath);
         const contents = await readTextFile(filePath);
+        if (contents.includes("\u0000")) {
+          throw new Error("This file appears to be binary and cannot be opened as text.");
+        }
         const { textId } = await createText(title, contents, null);
         await refreshTexts();
         setSelectedTextId(textId);
       } catch (error) {
         console.error("Failed to open text file", error);
+        const fileLabel = getFileLabel(filePath);
+        setConfirmState({
+          title: "Open file error",
+          message: `Unable to open "${fileLabel}" as text. ${getErrorMessage(
+            error,
+            "The file could not be decoded as text."
+          )}`,
+          actionLabel: "OK",
+          onConfirm: () => {}
+        });
       }
     },
     [refreshTexts]
@@ -1128,12 +1308,8 @@ export default function App() {
   const handleFilePaths = useCallback(
     async (paths: string[]) => {
       const now = Date.now();
-      const txtPaths = paths.filter((path) => {
-        const lower = path.toLowerCase();
-        return lower.endsWith(".txt") || lower.endsWith(".md");
-      });
       const recent = recentOpenRef.current;
-      for (const path of txtPaths) {
+      for (const path of paths) {
         const key = path.toLowerCase();
         const last = recent.get(key);
         if (last && now - last < 1000) continue;
@@ -1193,7 +1369,6 @@ export default function App() {
     const path = await open({
       multiple: false,
       directory: false,
-      filters: [{ name: "Text/Markdown", extensions: ["txt", "md"] }],
       defaultPath: baseDir
     });
     if (!path || Array.isArray(path)) return;
@@ -1427,6 +1602,16 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
+      const isFind =
+        (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "f";
+      if (isFind && !settingsOpen && !confirmState) {
+        const opened = openDocumentSearch();
+        if (opened) {
+          event.preventDefault();
+          return;
+        }
+      }
+
       const isSave =
         (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s";
       if (isSave) {
@@ -1442,7 +1627,7 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [confirmState, editingFolderId, editingTextId, handleSaveVersion, selectedTextId, settingsOpen]);
+  }, [confirmState, handleSaveVersion, openDocumentSearch, settingsOpen]);
 
   const renderTextItem = (text: Text) => (
     <div
@@ -1772,36 +1957,38 @@ export default function App() {
                     <img src={sidebarExpandIconSrc} alt="" className="icon-button__img" />
                   </button>
                 ) : null}
-                {hasText ? (
+                {hasText || isConverting ? (
                   <>
+                    {hasText ? (
+                      <button
+                        className="button"
+                        type="button"
+                        onClick={() => setMarkdownPreview((value) => !value)}
+                      >
+                        {markdownPreview
+                          ? splitView
+                            ? "Hide Preview"
+                            : "Edit"
+                          : "Preview Markdown"}
+                      </button>
+                    ) : null}
                     <button
                       className="button"
                       type="button"
-                      onClick={() => setMarkdownPreview((value) => !value)}
+                      onClick={isConverting ? handleCancelConversion : handleConvertToMarkdown}
+                      disabled={isConverting ? false : !ollamaModel || isViewingHistory || !hasText}
                     >
-                      {markdownPreview
-                        ? splitView
-                          ? "Hide Preview"
-                          : "Edit"
-                        : "Preview Markdown"}
+                      {isConverting ? "Cancel Conversion" : "Convert to Markdown"}
                     </button>
-                    <button
-                      className="button"
-                      type="button"
-                      onClick={handleConvertToMarkdown}
-                      disabled={!ollamaModel || isConverting || isViewingHistory}
-                    >
-                      {isConverting ? "Converting…" : "Convert to Markdown"}
-                    </button>
-                    <button className="button" onClick={handleExportText}>
-                      Export Text
-                    </button>
-                    {markdownPreview ? (
-                      <>
-                        <button className="button" type="button" onClick={handlePrintMarkdown}>
-                          Print
-                        </button>
-                      </>
+                    {hasText ? (
+                      <button className="button" onClick={handleExportText}>
+                        Export Text
+                      </button>
+                    ) : null}
+                    {hasText && markdownPreview ? (
+                      <button className="button" type="button" onClick={handlePrintMarkdown}>
+                        Print
+                      </button>
                     ) : null}
                   </>
                 ) : null}
@@ -1824,6 +2011,15 @@ export default function App() {
                   <div className="status-line">
                     <span className={`status status--${statusKey}`}></span>
                     {statusLabel}
+                  </div>
+                  {conversionLabel ? (
+                    <div className="status-line status-line--secondary">{conversionLabel}</div>
+                  ) : null}
+                  <div className="editor__stats" aria-label="Document statistics">
+                    <span>{documentStats.characters} chars</span>
+                    <span>{documentStats.words} words</span>
+                    <span>{documentStats.sentences} sentences</span>
+                    <span>{documentStats.estimatedTokens} est. tokens</span>
                   </div>
                 </div>
                 <button
