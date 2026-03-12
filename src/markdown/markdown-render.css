@@ -24,6 +24,7 @@ body:not([data-theme="light"]) .md-root {
 body[data-theme="light"] .md-root {
   --md-link-color: #0a66c2;
   --md-link-hover-color: #004182;
+  --md-surface-alt: var(--bg);
   --md-code-inline-bg: rgba(0, 0, 0, 0.06);
 }
 
