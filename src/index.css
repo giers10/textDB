@@ -600,6 +600,10 @@ body:not([data-theme="light"]) .folder-item {
   border-color: transparent;
 }
 
+body:not([data-theme="light"]) .editor__textarea-wrap--preview {
+  background: var(--bg);
+}
+
 .editor__textarea-wrap--split {
   flex-direction: row;
 }
@@ -611,6 +615,10 @@ body:not([data-theme="light"]) .folder-item {
 
 .editor__textarea-wrap--split .markdown-preview {
   flex: 1;
+}
+
+body:not([data-theme="light"]) .editor__textarea-wrap--split .markdown-preview {
+  background: var(--bg);
 }
 
 .editor__textarea-wrap:focus-within {
