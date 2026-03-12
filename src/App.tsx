@@ -264,6 +264,7 @@ export default function App() {
   const editorValueRef = useRef("");
   const lineNumbersCompartmentRef = useRef(new Compartment());
   const editableCompartmentRef = useRef(new Compartment());
+  const themeCompartmentRef = useRef(new Compartment());
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
   const searchRestoreSplitRef = useRef<boolean | null>(null);
