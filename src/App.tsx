@@ -325,6 +325,30 @@ export default function App() {
     }
   }, [selectedTextId]);
 
+  const editorThemeExtension = useMemo(
+    () =>
+      EditorView.theme(
+        {
+          ".cm-content, .cm-scroller": {
+            caretColor: theme === "dark" ? "#f5f5f5" : "#1f1f1f"
+          },
+          "&.cm-focused > .cm-scroller > .cm-cursorLayer .cm-cursor": {
+            borderLeftColor: theme === "dark" ? "#f5f5f5" : "#1f1f1f",
+            borderLeftWidth: "1.6px"
+          },
+          ".cm-dropCursor": {
+            borderLeftColor: theme === "dark" ? "#f5f5f5" : "#1f1f1f",
+            borderLeftWidth: "1.6px"
+          },
+          ".cm-fatCursor": {
+            background: theme === "dark" ? "rgba(245, 245, 245, 0.45)" : "rgba(31, 31, 31, 0.28)"
+          }
+        },
+        { dark: theme === "dark" }
+      ),
+    [theme]
+  );
+
   const editorHostRef = useCallback((node: HTMLDivElement | null) => {
     if (!node) {
       if (editorViewRef.current) {
@@ -382,29 +406,6 @@ export default function App() {
     const trimmed = ollamaUrl.trim();
     return (trimmed || DEFAULT_OLLAMA_URL).replace(/\/+$/, "");
   }, [ollamaUrl]);
-  const editorThemeExtension = useMemo(
-    () =>
-      EditorView.theme(
-        {
-          ".cm-content, .cm-scroller": {
-            caretColor: theme === "dark" ? "#f5f5f5" : "#1f1f1f"
-          },
-          "&.cm-focused > .cm-scroller > .cm-cursorLayer .cm-cursor": {
-            borderLeftColor: theme === "dark" ? "#f5f5f5" : "#1f1f1f",
-            borderLeftWidth: "1.6px"
-          },
-          ".cm-dropCursor": {
-            borderLeftColor: theme === "dark" ? "#f5f5f5" : "#1f1f1f",
-            borderLeftWidth: "1.6px"
-          },
-          ".cm-fatCursor": {
-            background: theme === "dark" ? "rgba(245, 245, 245, 0.45)" : "rgba(31, 31, 31, 0.28)"
-          }
-        },
-        { dark: theme === "dark" }
-      ),
-    [theme]
-  );
 
   const folderById = useMemo(() => {
     const map = new Map<string, Folder>();
