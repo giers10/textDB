@@ -17,6 +17,10 @@
     "Liberation Mono", "Courier New", monospace;
 }
 
+body:not([data-theme="light"]) .md-root {
+  --md-surface-alt: var(--bg);
+}
+
 body[data-theme="light"] .md-root {
   --md-link-color: #0a66c2;
   --md-link-hover-color: #004182;
