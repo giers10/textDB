@@ -135,6 +135,7 @@ body {
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--ink);
+  caret-color: var(--ink);
   font-size: 0.95rem;
 }
 
@@ -237,6 +238,7 @@ body {
   font: inherit;
   color: var(--ink);
   background: var(--bg-input);
+  caret-color: var(--ink);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 6px 10px;
@@ -360,6 +362,7 @@ body:not([data-theme="light"]) .folder-item {
   font: inherit;
   color: var(--ink);
   background: var(--bg-input);
+  caret-color: var(--ink);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 6px 10px;
@@ -489,6 +492,7 @@ body:not([data-theme="light"]) .folder-item {
   padding: 6px 2px 8px;
   background: transparent;
   color: var(--ink);
+  caret-color: var(--ink);
 }
 
 .title-input:focus {
@@ -1083,6 +1087,7 @@ body:not([data-theme="light"]) .folder-item {
   border: 1px solid var(--border);
   background: var(--bg-input);
   color: var(--ink);
+  caret-color: var(--ink);
   padding: 8px 10px;
   font-size: 0.95rem;
 }

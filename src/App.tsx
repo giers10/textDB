@@ -342,6 +342,7 @@ export default function App() {
         history(),
         search(),
         keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
+        themeCompartmentRef.current.of(editorThemeExtension),
         lineNumbersCompartmentRef.current.of([]),
         editableCompartmentRef.current.of(EditorView.editable.of(true)),
         EditorView.updateListener.of((update) => {
@@ -364,7 +365,7 @@ export default function App() {
     editorViewRef.current = view;
     editorValueRef.current = bodyRef.current;
     setEditorReady(true);
-  }, []);
+  }, [editorThemeExtension]);
 
   const isViewingHistory = viewingVersion !== null;
   const isConverting = conversionJob !== null;
@@ -634,6 +635,14 @@ export default function App() {
       )
     });
   }, [editorReady, isViewingHistory, markdownPreview, splitView]);
+
+  useEffect(() => {
+    const view = editorViewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: themeCompartmentRef.current.reconfigure(editorThemeExtension)
+    });
+  }, [editorReady, editorThemeExtension]);
 
 
   useEffect(() => {
