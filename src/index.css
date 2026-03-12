@@ -608,6 +608,10 @@ body:not([data-theme="light"]) .editor__textarea-wrap--preview {
   flex-direction: row;
 }
 
+body:not([data-theme="light"]) .editor__textarea-wrap--split {
+  background: var(--bg);
+}
+
 .editor__textarea-wrap--split .editor__codemirror {
   flex: 1;
   border-right: 1px solid var(--border);
@@ -752,6 +756,10 @@ body:not([data-theme="light"]) .editor__textarea-wrap--split .markdown-preview {
   overflow-y: auto;
   padding: 14px;
   color: var(--ink);
+}
+
+body:not([data-theme="light"]) .markdown-preview {
+  background: var(--bg);
 }
 
 .markdown-preview--hidden {
