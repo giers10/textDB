@@ -460,7 +460,9 @@ export default function App() {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [customPromptOpen, setCustomPromptOpen] = useState(false);
+  const [pendingAiScopeChoice, setPendingAiScopeChoice] =
+    useState<PendingAiScopeChoice | null>(null);
+  const [customPromptState, setCustomPromptState] = useState<CustomPromptState | null>(null);
   const [customPromptText, setCustomPromptText] = useState("");
   const [dbExporting, setDbExporting] = useState(false);
   const [dbExportStatus, setDbExportStatus] = useState<DbExportStatus | null>(null);
@@ -900,9 +902,27 @@ export default function App() {
     setExpandedPromptId((current) => (current === templateId ? null : current));
   }, []);
 
+  const getCurrentAiSelection = useCallback((): AiSelection | null => {
+    const view = editorViewRef.current;
+    if (!view) return null;
+    const main = view.state.selection.main;
+    if (main.empty) return null;
+    const from = Math.min(main.from, main.to);
+    const to = Math.max(main.from, main.to);
+    if (from === to) return null;
+    return {
+      from,
+      to,
+      text: view.state.doc.sliceString(from, to)
+    };
+  }, []);
+
   const openCustomPromptLightbox = useCallback(() => {
     setCustomPromptText("");
-    setCustomPromptOpen(true);
+    setCustomPromptState({
+      scope: "document",
+      selection: null
+    });
   }, []);
 
   const statusKey = useMemo(() => {
