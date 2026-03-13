@@ -551,6 +551,11 @@ export default function App() {
     return () => controller.abort();
   }, [normalizedOllamaUrl, settingsOpen]);
 
+  useEffect(() => {
+    if (!settingsOpen) return;
+    setDbExportStatus(null);
+  }, [settingsOpen]);
+
   const handlePrintMarkdown = useCallback(() => {
     if (!markdownPreview) return;
     document.body.classList.add("print-markdown");
