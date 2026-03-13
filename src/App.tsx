@@ -931,123 +931,244 @@ export default function App() {
     setHistoryItems(combined);
   }, []);
 
-  const handleConvertToMarkdown = useCallback(async () => {
-    if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
-    if (!ollamaModel) {
-      setConfirmState({
-        title: "Ollama",
-        message: "Select an Ollama model first.",
-        actionLabel: "OK",
-        onConfirm: () => {}
+  const runAiAction = useCallback(
+    async ({
+      promptKey,
+      actionLabel,
+      openPreviewOnSuccess = false,
+      variables = {}
+    }: AiActionRequest) => {
+      if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
+      if (!ollamaModel) {
+        setConfirmState({
+          title: "Ollama",
+          message: "Select an Ollama model first.",
+          actionLabel: "OK",
+          onConfirm: () => {}
+        });
+        return;
+      }
+
+      const resolvedTranslateLanguage = translateLanguage.trim() || DEFAULT_TRANSLATE_LANGUAGE;
+      if (promptKey === "translate" && !resolvedTranslateLanguage) {
+        setConfirmState({
+          title: "Translate",
+          message: "Set a target language in Settings first.",
+          actionLabel: "OK",
+          onConfirm: () => {}
+        });
+        return;
+      }
+
+      const controller = new AbortController();
+      const template = (aiPrompts[promptKey] || DEFAULT_AI_PROMPTS[promptKey]).trim();
+      const sourceTextId = selectedTextId;
+      const sourceBody = body;
+      const sourceTitle = title.trim() || DEFAULT_TITLE;
+      const sourceDraftBaseVersionId = draftBaseVersionId;
+      const fullPrompt = `${applyPromptVariables(template, {
+        language: resolvedTranslateLanguage,
+        ...variables
+      })}\n\nDocument:\n${sourceBody}`;
+
+      setConversionJob({
+        actionLabel,
+        openPreviewOnSuccess,
+        sourceTextId,
+        sourceTitle,
+        sourceBody,
+        sourceDraftBaseVersionId,
+        controller
       });
-      return;
-    }
-    const controller = new AbortController();
-    const prompt = (ollamaPrompt || DEFAULT_OLLAMA_PROMPT).trim();
-    const sourceTextId = selectedTextId;
-    const sourceBody = body;
-    const sourceTitle = title.trim() || DEFAULT_TITLE;
-    const fullPrompt = `${prompt}\n${sourceBody}`;
-    setConversionJob({
-      sourceTextId,
-      sourceTitle,
-      sourceBody,
-      controller
+
+      try {
+        const response = await fetch(`${normalizedOllamaUrl}/api/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            model: ollamaModel,
+            prompt: fullPrompt,
+            stream: false
+          })
+        });
+        if (!response.ok) {
+          throw new Error(`Ollama responded with ${response.status}`);
+        }
+        const data = await response.json();
+        const resultText = typeof data?.response === "string" ? data.response.trim() : "";
+        if (!resultText) {
+          throw new Error("Ollama returned an empty response.");
+        }
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        const hasLiveEditsOnSource =
+          selectedTextIdRef.current === sourceTextId &&
+          viewingVersionRef.current === null &&
+          bodyRef.current !== sourceBody;
+
+        if (hasLiveEditsOnSource) {
+          setConfirmState({
+            title: "AI edit skipped",
+            message: `${actionLabel} finished, but the source text changed while it was running. The result was not applied.`,
+            actionLabel: "OK",
+            onConfirm: () => {}
+          });
+          return;
+        }
+
+        await upsertDraft(sourceTextId, resultText, sourceDraftBaseVersionId);
+
+        const canApplyToVisibleEditor =
+          selectedTextIdRef.current === sourceTextId &&
+          viewingVersionRef.current === null;
+
+        if (canApplyToVisibleEditor) {
+          setBody(resultText);
+          setLastPersistedBody(resultText);
+          setHasDraft(true);
+          setRestoredDraft(false);
+          setDraftBaseVersionId(sourceDraftBaseVersionId);
+          setSelectedHistoryId(`draft:${sourceTextId}`);
+          setViewingVersion(null);
+          historySnapshotRef.current = null;
+          if (openPreviewOnSuccess) {
+            setMarkdownPreview(true);
+          }
+        }
+
+        await refreshTexts();
+        if (selectedTextIdRef.current === sourceTextId && historyOpenRef.current) {
+          await refreshVersions(sourceTextId);
+        }
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return;
+        }
+        console.error("Failed to run AI edit", error);
+        setConfirmState({
+          title: "Ollama error",
+          message: error instanceof Error ? error.message : `${actionLabel} failed.`,
+          actionLabel: "OK",
+          onConfirm: () => {}
+        });
+      } finally {
+        setConversionJob((current) =>
+          current?.controller === controller ? null : current
+        );
+      }
+    },
+    [
+      aiPrompts,
+      body,
+      draftBaseVersionId,
+      hasText,
+      isConverting,
+      isViewingHistory,
+      normalizedOllamaUrl,
+      ollamaModel,
+      refreshTexts,
+      refreshVersions,
+      selectedTextId,
+      title,
+      translateLanguage
+    ]
+  );
+
+  const handleConvertToMarkdown = useCallback(() => {
+    runAiAction({
+      promptKey: "markdownConversion",
+      actionLabel: "Markdown Conversion",
+      openPreviewOnSuccess: true
+    }).catch((error) => {
+      console.error("Failed to convert to Markdown", error);
     });
-    try {
-      const response = await fetch(`${normalizedOllamaUrl}/api/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          model: ollamaModel,
-          prompt: fullPrompt,
-          stream: false
-        })
-      });
-      if (!response.ok) {
-        throw new Error(`Ollama responded with ${response.status}`);
-      }
-      const data = await response.json();
-      const resultText = typeof data?.response === "string" ? data.response : "";
-      if (!resultText) {
-        throw new Error("Ollama returned an empty response.");
-      }
-      if (controller.signal.aborted) {
-        return;
-      }
-      const currentText = await getText(sourceTextId);
-      const normalizedTitle = currentText?.title?.trim() || sourceTitle;
-      if (controller.signal.aborted) {
-        return;
-      }
-      const result = await saveManualVersion(sourceTextId, normalizedTitle, resultText);
-      const hasLiveEditsOnSource =
-        selectedTextIdRef.current === sourceTextId &&
-        viewingVersionRef.current === null &&
-        bodyRef.current !== sourceBody;
+  }, [runAiAction]);
 
-      const canApplyToVisibleEditor =
-        selectedTextIdRef.current === sourceTextId &&
-        viewingVersionRef.current === null &&
-        !hasLiveEditsOnSource;
+  const handleOpenAiToolsMenu = useCallback(async () => {
+    if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
 
-      if (hasLiveEditsOnSource) {
-        const currentBody = bodyRef.current;
-        await upsertDraft(sourceTextId, currentBody, result.versionId);
-        setHasDraft(true);
-        setLastPersistedBody(currentBody);
-        setLatestManualVersionId(result.versionId);
-        setDraftBaseVersionId(result.versionId);
-        setSelectedHistoryId(`draft:${sourceTextId}`);
-      }
-
-      if (canApplyToVisibleEditor) {
-        setBody(resultText);
-        setLastPersistedBody(resultText);
-        setLastPersistedTitle(normalizedTitle);
-        setHasDraft(false);
-        setRestoredDraft(false);
-        setLatestManualVersionId(result.versionId);
-        setDraftBaseVersionId(result.versionId);
-        setSelectedHistoryId(result.versionId);
-        setViewingVersion(null);
-        historySnapshotRef.current = null;
-        setMarkdownPreview(true);
-      }
-
-      await refreshTexts();
-      if (selectedTextIdRef.current === sourceTextId && historyOpenRef.current) {
-        await refreshVersions(sourceTextId);
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        return;
-      }
-      console.error("Failed to convert with Ollama", error);
-      setConfirmState({
-        title: "Ollama error",
-        message: error instanceof Error ? error.message : "Conversion failed.",
-        actionLabel: "OK",
-        onConfirm: () => {}
-      });
-    } finally {
-      setConversionJob((current) =>
-        current?.controller === controller ? null : current
-      );
-    }
+    const menu = await Menu.new({
+      items: [
+        {
+          text: "Markdown Conversion",
+          action: () => {
+            handleConvertToMarkdown();
+          }
+        },
+        {
+          text: "Proofread - Correct Spelling",
+          action: () => {
+            runAiAction({
+              promptKey: "proofreadSpelling",
+              actionLabel: "Proofread - Correct Spelling"
+            }).catch((error) => {
+              console.error("Failed to proofread text", error);
+            });
+          }
+        },
+        {
+          text: "Summarize",
+          action: () => {
+            runAiAction({
+              promptKey: "summarize",
+              actionLabel: "Summarize"
+            }).catch((error) => {
+              console.error("Failed to summarize text", error);
+            });
+          }
+        },
+        {
+          text: `Translate to ${translateLanguage.trim() || DEFAULT_TRANSLATE_LANGUAGE}`,
+          action: () => {
+            runAiAction({
+              promptKey: "translate",
+              actionLabel: `Translate to ${translateLanguage.trim() || DEFAULT_TRANSLATE_LANGUAGE}`
+            }).catch((error) => {
+              console.error("Failed to translate text", error);
+            });
+          }
+        },
+        {
+          text: "Change Style",
+          items: changeStylePresets.map((preset) => ({
+            text: preset,
+            action: () => {
+              runAiAction({
+                promptKey: "changeStyle",
+                actionLabel: `Change Style: ${preset}`,
+                variables: { style: preset }
+              }).catch((error) => {
+                console.error("Failed to change style", error);
+              });
+            }
+          }))
+        },
+        {
+          text: "Rewrite",
+          action: () => {
+            runAiAction({
+              promptKey: "rewrite",
+              actionLabel: "Rewrite"
+            }).catch((error) => {
+              console.error("Failed to rewrite text", error);
+            });
+          }
+        }
+      ]
+    });
+    await menu.popup(undefined, getCurrentWindow());
   }, [
-    body,
+    changeStylePresets,
+    handleConvertToMarkdown,
     hasText,
     isConverting,
     isViewingHistory,
-    normalizedOllamaUrl,
-    ollamaModel,
-    ollamaPrompt,
-    refreshTexts,
-    refreshVersions,
+    runAiAction,
     selectedTextId,
-    title
+    translateLanguage
   ]);
 
   useEffect(() => {
