@@ -490,9 +490,7 @@ export default function App() {
   const [aiPromptTemplates, setAiPromptTemplates] = useState<AiPromptTemplate[]>(
     () => loadAiPromptTemplates()
   );
-  const [expandedPromptId, setExpandedPromptId] = useState<string | null>(
-    () => loadAiPromptTemplates()[0]?.id ?? null
-  );
+  const [expandedPromptId, setExpandedPromptId] = useState<string | null>(null);
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [ollamaLoading, setOllamaLoading] = useState(false);
   const [ollamaError, setOllamaError] = useState<string | null>(null);
