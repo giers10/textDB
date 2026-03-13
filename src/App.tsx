@@ -384,6 +384,18 @@ function getAiPromptTemplateLabel(template: AiPromptTemplate) {
   return template.title.trim() || "Untitled Prompt";
 }
 
+function sanitizeAiResponse(text: string) {
+  const normalized = text.trim();
+  const markdownFenceMatch = normalized.match(
+    /```(?:markdown|md)\b[^\n\r]*\r?\n?([\s\S]*?)```/i
+  );
+  if (!markdownFenceMatch) {
+    return normalized;
+  }
+
+  return markdownFenceMatch[1].trim();
+}
+
 const graphemeSegmenter =
   typeof Intl !== "undefined" && "Segmenter" in Intl
     ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
