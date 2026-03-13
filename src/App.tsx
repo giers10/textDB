@@ -1042,12 +1042,7 @@ export default function App() {
   }, []);
 
   const runAiAction = useCallback(
-    async ({
-      promptKey,
-      actionLabel,
-      openPreviewOnSuccess = false,
-      variables = {}
-    }: AiActionRequest) => {
+    async ({ template }: AiActionRequest) => {
       if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
       if (!ollamaModel) {
         setConfirmState({
@@ -1059,11 +1054,12 @@ export default function App() {
         return;
       }
 
-      const resolvedTranslateLanguage = translateLanguage.trim() || DEFAULT_TRANSLATE_LANGUAGE;
-      if (promptKey === "translate" && !resolvedTranslateLanguage) {
+      const actionLabel = getAiPromptTemplateLabel(template);
+      const prompt = template.prompt.trim();
+      if (!prompt) {
         setConfirmState({
-          title: "Translate",
-          message: "Set a target language in Settings first.",
+          title: "Prompt template",
+          message: `The prompt template "${actionLabel}" is empty.`,
           actionLabel: "OK",
           onConfirm: () => {}
         });
@@ -1071,19 +1067,15 @@ export default function App() {
       }
 
       const controller = new AbortController();
-      const template = (aiPrompts[promptKey] || DEFAULT_AI_PROMPTS[promptKey]).trim();
       const sourceTextId = selectedTextId;
       const sourceBody = body;
       const sourceTitle = title.trim() || DEFAULT_TITLE;
       const sourceDraftBaseVersionId = draftBaseVersionId;
-      const fullPrompt = `${applyPromptVariables(template, {
-        language: resolvedTranslateLanguage,
-        ...variables
-      })}\n\nDocument:\n${sourceBody}`;
+      const fullPrompt = `${prompt}\n\nDocument:\n${sourceBody}`;
 
       setConversionJob({
         actionLabel,
-        openPreviewOnSuccess,
+        openPreviewOnSuccess: Boolean(template.openPreviewOnSuccess),
         sourceTextId,
         sourceTitle,
         sourceBody,
@@ -1144,7 +1136,7 @@ export default function App() {
           setSelectedHistoryId(`draft:${sourceTextId}`);
           setViewingVersion(null);
           historySnapshotRef.current = null;
-          if (openPreviewOnSuccess) {
+          if (template.openPreviewOnSuccess) {
             setMarkdownPreview(true);
           }
         }
@@ -1182,103 +1174,40 @@ export default function App() {
       refreshTexts,
       refreshVersions,
       selectedTextId,
-      title,
-      translateLanguage
+      title
     ]
   );
 
-  const handleConvertToMarkdown = useCallback(() => {
-    runAiAction({
-      promptKey: "markdownConversion",
-      actionLabel: "Markdown Conversion",
-      openPreviewOnSuccess: true
-    }).catch((error) => {
-      console.error("Failed to convert to Markdown", error);
-    });
-  }, [runAiAction]);
-
   const handleOpenAiToolsMenu = useCallback(async () => {
     if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
+    if (aiPromptTemplates.length === 0) {
+      setConfirmState({
+        title: "AI Tools",
+        message: "Add at least one prompt template in Settings first.",
+        actionLabel: "OK",
+        onConfirm: () => {}
+      });
+      return;
+    }
 
     const menu = await Menu.new({
-      items: [
-        {
-          text: "Markdown Conversion",
-          action: () => {
-            handleConvertToMarkdown();
-          }
-        },
-        {
-          text: "Proofread - Correct Spelling",
-          action: () => {
-            runAiAction({
-              promptKey: "proofreadSpelling",
-              actionLabel: "Proofread - Correct Spelling"
-            }).catch((error) => {
-              console.error("Failed to proofread text", error);
-            });
-          }
-        },
-        {
-          text: "Summarize",
-          action: () => {
-            runAiAction({
-              promptKey: "summarize",
-              actionLabel: "Summarize"
-            }).catch((error) => {
-              console.error("Failed to summarize text", error);
-            });
-          }
-        },
-        {
-          text: `Translate to ${translateLanguage.trim() || DEFAULT_TRANSLATE_LANGUAGE}`,
-          action: () => {
-            runAiAction({
-              promptKey: "translate",
-              actionLabel: `Translate to ${translateLanguage.trim() || DEFAULT_TRANSLATE_LANGUAGE}`
-            }).catch((error) => {
-              console.error("Failed to translate text", error);
-            });
-          }
-        },
-        {
-          text: "Change Style",
-          items: changeStylePresets.map((preset) => ({
-            text: preset,
-            action: () => {
-              runAiAction({
-                promptKey: "changeStyle",
-                actionLabel: `Change Style: ${preset}`,
-                variables: { style: preset }
-              }).catch((error) => {
-                console.error("Failed to change style", error);
-              });
-            }
-          }))
-        },
-        {
-          text: "Rewrite",
-          action: () => {
-            runAiAction({
-              promptKey: "rewrite",
-              actionLabel: "Rewrite"
-            }).catch((error) => {
-              console.error("Failed to rewrite text", error);
-            });
-          }
+      items: aiPromptTemplates.map((template) => ({
+        text: getAiPromptTemplateLabel(template),
+        action: () => {
+          runAiAction({ template }).catch((error) => {
+            console.error("Failed to run AI tool", error);
+          });
         }
-      ]
+      }))
     });
     await menu.popup(undefined, getCurrentWindow());
   }, [
-    changeStylePresets,
-    handleConvertToMarkdown,
+    aiPromptTemplates,
     hasText,
     isConverting,
     isViewingHistory,
     runAiAction,
-    selectedTextId,
-    translateLanguage
+    selectedTextId
   ]);
 
   useEffect(() => {
