@@ -993,6 +993,19 @@ body:not([data-theme="light"]) .markdown-preview {
   color: var(--muted);
 }
 
+.modal__selection-preview {
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--ink);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+}
+
 .modal__actions {
   display: flex;
   justify-content: flex-end;
