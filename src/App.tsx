@@ -124,14 +124,139 @@ type SidebarEntry =
   | { kind: "folder"; item: Folder }
   | { kind: "text"; item: Text };
 
+type AiPromptKey =
+  | "markdownConversion"
+  | "proofreadSpelling"
+  | "summarize"
+  | "translate"
+  | "changeStyle"
+  | "rewrite";
+
+type AiPrompts = Record<AiPromptKey, string>;
+
+type AiPromptDefinition = {
+  key: AiPromptKey;
+  title: string;
+  hint?: string;
+};
+
+type AiActionRequest = {
+  promptKey: AiPromptKey;
+  actionLabel: string;
+  openPreviewOnSuccess?: boolean;
+  variables?: Record<string, string>;
+};
+
 const DEFAULT_TITLE = "Untitled Text";
 const DEFAULT_FOLDER_NAME = "New Folder";
 const DEFAULT_OLLAMA_URL = "http://localhost:11434";
-const DEFAULT_OLLAMA_PROMPT = `Convert the following plain text into well-formatted Markdown.
-Do not change or omit any content.
-Only add Markdown structure (such as headings, lists, code blocks, tables, quotes, links, bold, italics, etc.) where appropriate, based on the meaning and structure of the original text.
-Keep the content itself unaltered and do not translate, summarize or rephrase. Only use your Markdown-formatting skills.
-Text:`;
+const DEFAULT_TRANSLATE_LANGUAGE = "English";
+const DEFAULT_CHANGE_STYLE_PRESETS = ["Friendly", "Professional", "Polite", "Concise"];
+const AI_PROMPTS_STORAGE_KEY = "textdb.aiPrompts";
+const LEGACY_MARKDOWN_PROMPT_STORAGE_KEY = "textdb.ollamaPrompt";
+const TRANSLATE_LANGUAGE_STORAGE_KEY = "textdb.translateLanguage";
+const CHANGE_STYLE_PRESETS_STORAGE_KEY = "textdb.changeStylePresets";
+
+const DEFAULT_AI_PROMPTS: AiPrompts = {
+  markdownConversion: `Convert the document into well-structured Markdown.
+Do not remove, translate, summarize, or invent content.
+Add Markdown formatting only where it improves structure and readability.
+Return only the final Markdown document.`,
+  proofreadSpelling: `Proofread the document.
+Correct spelling mistakes, obvious typos, and minor punctuation issues only.
+Keep the wording, meaning, structure, and tone otherwise unchanged.
+Return only the corrected document.`,
+  summarize: `Summarize the document into a concise version.
+Keep the key facts, decisions, and important details.
+Use clear structure and short paragraphs or bullets where helpful.
+Return only the final summary.`,
+  translate: `Translate the document into {{language}}.
+Preserve the meaning, intent, and structure as naturally as possible.
+Keep Markdown formatting where it already exists or where it clearly improves readability.
+Return only the translated document.`,
+  changeStyle: `Rewrite the document in a {{style}} style.
+Preserve the meaning, facts, and overall structure.
+Improve wording and tone to match the requested style without adding commentary.
+Return only the rewritten document.`,
+  rewrite: `Rewrite the document for clarity and flow.
+Preserve the meaning and important details.
+Improve readability, structure, and phrasing without adding commentary.
+Return only the rewritten document.`
+};
+
+const AI_PROMPT_DEFINITIONS: AiPromptDefinition[] = [
+  {
+    key: "markdownConversion",
+    title: "Markdown Conversion"
+  },
+  {
+    key: "proofreadSpelling",
+    title: "Proofread - Correct Spelling"
+  },
+  {
+    key: "summarize",
+    title: "Summarize"
+  },
+  {
+    key: "translate",
+    title: "Translate",
+    hint: "Uses {{language}}."
+  },
+  {
+    key: "changeStyle",
+    title: "Change Style",
+    hint: "Uses {{style}}."
+  },
+  {
+    key: "rewrite",
+    title: "Rewrite"
+  }
+];
+
+function loadAiPrompts(): AiPrompts {
+  let stored: Partial<AiPrompts> | null = null;
+  try {
+    const raw = localStorage.getItem(AI_PROMPTS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        stored = parsed as Partial<AiPrompts>;
+      }
+    }
+  } catch {
+    stored = null;
+  }
+
+  const legacyMarkdownPrompt = localStorage.getItem(LEGACY_MARKDOWN_PROMPT_STORAGE_KEY);
+
+  return {
+    ...DEFAULT_AI_PROMPTS,
+    ...stored,
+    markdownConversion:
+      stored?.markdownConversion ||
+      legacyMarkdownPrompt ||
+      DEFAULT_AI_PROMPTS.markdownConversion
+  };
+}
+
+function loadChangeStylePresets() {
+  try {
+    const raw = localStorage.getItem(CHANGE_STYLE_PRESETS_STORAGE_KEY);
+    if (!raw) return [...DEFAULT_CHANGE_STYLE_PRESETS];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [...DEFAULT_CHANGE_STYLE_PRESETS];
+    const normalized = parsed
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
+      .filter(Boolean);
+    return normalized.length > 0 ? Array.from(new Set(normalized)) : [...DEFAULT_CHANGE_STYLE_PRESETS];
+  } catch {
+    return [...DEFAULT_CHANGE_STYLE_PRESETS];
+  }
+}
+
+function applyPromptVariables(template: string, variables: Record<string, string>) {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => variables[key] ?? `{{${key}}}`);
+}
 
 const graphemeSegmenter =
   typeof Intl !== "undefined" && "Segmenter" in Intl
