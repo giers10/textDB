@@ -830,24 +830,43 @@ export default function App() {
     conversionJob?.controller.abort();
   }, [conversionJob]);
 
-  const handleUpdateAiPrompt = useCallback((key: AiPromptKey, value: string) => {
-    setAiPrompts((current) => ({
-      ...current,
-      [key]: value
-    }));
+  const handleUpdateAiPromptTemplate = useCallback((
+    templateId: string,
+    field: "title" | "prompt",
+    value: string
+  ) => {
+    setAiPromptTemplates((current) =>
+      current.map((template) =>
+        template.id === templateId
+          ? {
+              ...template,
+              [field]: value
+            }
+          : template
+      )
+    );
   }, []);
 
-  const handleAddStylePreset = useCallback(() => {
-    const normalized = newStylePreset.trim();
-    if (!normalized) return;
-    setChangeStylePresets((current) => {
-      if (current.some((preset) => preset.toLowerCase() === normalized.toLowerCase())) {
-        return current;
-      }
-      return [...current, normalized];
+  const handleAddAiPromptTemplate = useCallback(() => {
+    const template: AiPromptTemplate = {
+      id: crypto.randomUUID(),
+      title: "New Prompt",
+      prompt: ""
+    };
+    setAiPromptTemplates((current) => [...current, template]);
+    setExpandedPromptId(template.id);
+  }, []);
+
+  const handleDeleteAiPromptTemplate = useCallback((templateId: string) => {
+    setAiPromptTemplates((current) => {
+      const next = current.filter((template) => template.id !== templateId);
+      setExpandedPromptId((expandedId) => {
+        if (expandedId !== templateId) return expandedId;
+        return next[0]?.id ?? null;
+      });
+      return next;
     });
-    setNewStylePreset("");
-  }, [newStylePreset]);
+  }, []);
 
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
