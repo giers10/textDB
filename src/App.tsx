@@ -209,6 +209,8 @@ export default function App() {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [dbExporting, setDbExporting] = useState(false);
+  const [dbExportStatus, setDbExportStatus] = useState<DbExportStatus | null>(null);
   const [markdownPreview, setMarkdownPreview] = useState(false);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editingFolderName, setEditingFolderName] = useState("");
