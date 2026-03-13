@@ -2244,12 +2244,13 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
-      if (customPromptOpen && event.key === "Escape") {
+      if ((customPromptState || pendingAiScopeChoice) && event.key === "Escape") {
         event.preventDefault();
-        setCustomPromptOpen(false);
+        setCustomPromptState(null);
+        setPendingAiScopeChoice(null);
         return;
       }
-      if (customPromptOpen) {
+      if (customPromptState || pendingAiScopeChoice) {
         return;
       }
       const isFind =
@@ -2277,7 +2278,14 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [confirmState, customPromptOpen, handleSaveVersion, openDocumentSearch, settingsOpen]);
+  }, [
+    confirmState,
+    customPromptState,
+    handleSaveVersion,
+    openDocumentSearch,
+    pendingAiScopeChoice,
+    settingsOpen
+  ]);
 
   const renderTextItem = (text: Text) => (
     <div
