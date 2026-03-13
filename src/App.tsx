@@ -1259,15 +1259,6 @@ export default function App() {
 
   const handleOpenAiToolsMenu = useCallback(async () => {
     if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
-    if (aiPromptTemplates.length === 0) {
-      setConfirmState({
-        title: "AI Tools",
-        message: "Add at least one prompt template in Settings first.",
-        actionLabel: "OK",
-        onConfirm: () => {}
-      });
-      return;
-    }
 
     const menu = await Menu.new({
       items: [
@@ -2151,6 +2142,14 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
+      if (customPromptOpen && event.key === "Escape") {
+        event.preventDefault();
+        setCustomPromptOpen(false);
+        return;
+      }
+      if (customPromptOpen) {
+        return;
+      }
       const isFind =
         (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "f";
       if (isFind && !settingsOpen && !confirmState) {
@@ -2176,7 +2175,7 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [confirmState, handleSaveVersion, openDocumentSearch, settingsOpen]);
+  }, [confirmState, customPromptOpen, handleSaveVersion, openDocumentSearch, settingsOpen]);
 
   const renderTextItem = (text: Text) => (
     <div
@@ -2528,7 +2527,7 @@ export default function App() {
                       disabled={
                         isConverting
                           ? false
-                          : !ollamaModel || isViewingHistory || !hasText || aiPromptTemplates.length === 0
+                          : !ollamaModel || isViewingHistory || !hasText
                       }
                     >
                       {isConverting ? "Cancel AI Edit" : "AI Tools"}
@@ -2894,6 +2893,53 @@ export default function App() {
                   </div>
                 ) : null}
               </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {customPromptOpen ? (
+        <div className="modal">
+          <div className="modal__overlay" onClick={() => setCustomPromptOpen(false)} />
+          <div className="modal__card modal__card--wide" role="dialog" aria-modal="true">
+            <div className="modal__title">Custom Prompt</div>
+            <div className="modal__message">
+              Tell the AI what it should do with the current text.
+            </div>
+            <textarea
+              className="modal__textarea"
+              value={customPromptText}
+              onChange={(event) => setCustomPromptText(event.target.value)}
+              onKeyDown={(event) => {
+                if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "enter") {
+                  event.preventDefault();
+                  handleRunCustomPrompt().catch((error) => {
+                    console.error("Failed to run custom prompt", error);
+                  });
+                } else if (event.key === "Escape") {
+                  event.preventDefault();
+                  setCustomPromptOpen(false);
+                }
+              }}
+              placeholder="Example: Turn this into a short release note with bullet points."
+              autoFocus
+            />
+            <div className="modal__hint">Press Cmd/Ctrl+Enter to run.</div>
+            <div className="modal__actions">
+              <button className="button" onClick={() => setCustomPromptOpen(false)}>
+                Cancel
+              </button>
+              <button
+                className="button button--primary"
+                onClick={() => {
+                  handleRunCustomPrompt().catch((error) => {
+                    console.error("Failed to run custom prompt", error);
+                  });
+                }}
+                disabled={customPromptText.trim().length === 0}
+              >
+                Run Prompt
+              </button>
             </div>
           </div>
         </div>

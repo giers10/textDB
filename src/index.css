@@ -963,11 +963,33 @@ body:not([data-theme="light"]) .markdown-preview {
   gap: 12px;
 }
 
+.modal__card--wide {
+  width: min(560px, 92vw);
+}
+
 .modal__title {
   font-size: 1.2rem;
 }
 
 .modal__message {
+  color: var(--muted);
+}
+
+.modal__textarea {
+  width: 100%;
+  min-height: 170px;
+  resize: vertical;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--ink);
+  caret-color: var(--ink);
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.modal__hint {
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
