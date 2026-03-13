@@ -127,138 +127,236 @@ type SidebarEntry =
   | { kind: "folder"; item: Folder }
   | { kind: "text"; item: Text };
 
-type AiPromptKey =
-  | "markdownConversion"
-  | "proofreadSpelling"
-  | "summarize"
-  | "translate"
-  | "changeStyle"
-  | "rewrite";
-
-type AiPrompts = Record<AiPromptKey, string>;
-
-type AiPromptDefinition = {
-  key: AiPromptKey;
+type AiPromptTemplate = {
+  id: string;
   title: string;
-  hint?: string;
+  prompt: string;
+  openPreviewOnSuccess?: boolean;
 };
 
 type AiActionRequest = {
-  promptKey: AiPromptKey;
-  actionLabel: string;
-  openPreviewOnSuccess?: boolean;
-  variables?: Record<string, string>;
+  template: AiPromptTemplate;
 };
 
 const DEFAULT_TITLE = "Untitled Text";
 const DEFAULT_FOLDER_NAME = "New Folder";
 const DEFAULT_OLLAMA_URL = "http://localhost:11434";
-const DEFAULT_TRANSLATE_LANGUAGE = "English";
-const DEFAULT_CHANGE_STYLE_PRESETS = ["Friendly", "Professional", "Polite", "Concise"];
-const AI_PROMPTS_STORAGE_KEY = "textdb.aiPrompts";
+const AI_PROMPT_TEMPLATES_STORAGE_KEY = "textdb.aiPromptTemplates";
+const LEGACY_AI_PROMPTS_STORAGE_KEY = "textdb.aiPrompts";
 const LEGACY_MARKDOWN_PROMPT_STORAGE_KEY = "textdb.ollamaPrompt";
-const TRANSLATE_LANGUAGE_STORAGE_KEY = "textdb.translateLanguage";
-const CHANGE_STYLE_PRESETS_STORAGE_KEY = "textdb.changeStylePresets";
+const LEGACY_TRANSLATE_LANGUAGE_STORAGE_KEY = "textdb.translateLanguage";
+const LEGACY_CHANGE_STYLE_PRESETS_STORAGE_KEY = "textdb.changeStylePresets";
 
-const DEFAULT_AI_PROMPTS: AiPrompts = {
-  markdownConversion: `Convert the document into well-structured Markdown.
+const DEFAULT_AI_PROMPT_TEMPLATES: AiPromptTemplate[] = [
+  {
+    id: "markdown-conversion",
+    title: "Markdown Conversion",
+    prompt: `Convert the document into well-structured Markdown.
 Do not remove, translate, summarize, or invent content.
 Add Markdown formatting only where it improves structure and readability.
 Return only the final Markdown document.`,
-  proofreadSpelling: `Proofread the document.
+    openPreviewOnSuccess: true
+  },
+  {
+    id: "proofread-spelling",
+    title: "Proofread - Correct Spelling",
+    prompt: `Proofread the document.
 Correct spelling mistakes, obvious typos, and minor punctuation issues only.
 Keep the wording, meaning, structure, and tone otherwise unchanged.
-Return only the corrected document.`,
-  summarize: `Summarize the document into a concise version.
+Return only the corrected document.`
+  },
+  {
+    id: "summarize",
+    title: "Summarize",
+    prompt: `Summarize the document into a concise version.
 Keep the key facts, decisions, and important details.
 Use clear structure and short paragraphs or bullets where helpful.
-Return only the final summary.`,
-  translate: `Translate the document into {{language}}.
+Return only the final summary.`
+  },
+  {
+    id: "translate-english",
+    title: "Translate to English",
+    prompt: `Translate the document into English.
 Preserve the meaning, intent, and structure as naturally as possible.
 Keep Markdown formatting where it already exists or where it clearly improves readability.
-Return only the translated document.`,
-  changeStyle: `Rewrite the document in a {{style}} style.
+Return only the translated document.`
+  },
+  {
+    id: "change-style-friendly",
+    title: "Change Style: Friendly",
+    prompt: `Rewrite the document in a friendly style.
 Preserve the meaning, facts, and overall structure.
 Improve wording and tone to match the requested style without adding commentary.
-Return only the rewritten document.`,
-  rewrite: `Rewrite the document for clarity and flow.
+Return only the rewritten document.`
+  },
+  {
+    id: "change-style-professional",
+    title: "Change Style: Professional",
+    prompt: `Rewrite the document in a professional style.
+Preserve the meaning, facts, and overall structure.
+Improve wording and tone to match the requested style without adding commentary.
+Return only the rewritten document.`
+  },
+  {
+    id: "change-style-polite",
+    title: "Change Style: Polite",
+    prompt: `Rewrite the document in a polite style.
+Preserve the meaning, facts, and overall structure.
+Improve wording and tone to match the requested style without adding commentary.
+Return only the rewritten document.`
+  },
+  {
+    id: "change-style-concise",
+    title: "Change Style: Concise",
+    prompt: `Rewrite the document in a concise style.
+Preserve the meaning, facts, and overall structure.
+Make the writing tighter and more direct without losing important details.
+Return only the rewritten document.`
+  },
+  {
+    id: "rewrite",
+    title: "Rewrite",
+    prompt: `Rewrite the document for clarity and flow.
 Preserve the meaning and important details.
 Improve readability, structure, and phrasing without adding commentary.
 Return only the rewritten document.`
-};
-
-const AI_PROMPT_DEFINITIONS: AiPromptDefinition[] = [
-  {
-    key: "markdownConversion",
-    title: "Markdown Conversion"
-  },
-  {
-    key: "proofreadSpelling",
-    title: "Proofread - Correct Spelling"
-  },
-  {
-    key: "summarize",
-    title: "Summarize"
-  },
-  {
-    key: "translate",
-    title: "Translate",
-    hint: "Uses {{language}}."
-  },
-  {
-    key: "changeStyle",
-    title: "Change Style",
-    hint: "Uses {{style}}."
-  },
-  {
-    key: "rewrite",
-    title: "Rewrite"
   }
 ];
 
-function loadAiPrompts(): AiPrompts {
-  let stored: Partial<AiPrompts> | null = null;
-  try {
-    const raw = localStorage.getItem(AI_PROMPTS_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") {
-        stored = parsed as Partial<AiPrompts>;
-      }
-    }
-  } catch {
-    stored = null;
-  }
-
-  const legacyMarkdownPrompt = localStorage.getItem(LEGACY_MARKDOWN_PROMPT_STORAGE_KEY);
-
-  return {
-    ...DEFAULT_AI_PROMPTS,
-    ...stored,
-    markdownConversion:
-      stored?.markdownConversion ||
-      legacyMarkdownPrompt ||
-      DEFAULT_AI_PROMPTS.markdownConversion
-  };
+function buildLegacyStylePrompt(prompt: string, style: string) {
+  return prompt.replace(/\{\{style\}\}/g, style);
 }
 
-function loadChangeStylePresets() {
+function buildLegacyTranslatePrompt(prompt: string, language: string) {
+  return prompt.replace(/\{\{language\}\}/g, language);
+}
+
+function normalizeAiPromptTemplates(value: unknown): AiPromptTemplate[] {
+  if (!Array.isArray(value)) return [];
+  const normalized = value
+    .map((entry, index) => {
+      if (!entry || typeof entry !== "object") return null;
+      const record = entry as Record<string, unknown>;
+      const id =
+        typeof record.id === "string" && record.id.trim()
+          ? record.id.trim()
+          : `ai-template-${index}`;
+      const title =
+        typeof record.title === "string" && record.title.trim()
+          ? record.title
+          : "Untitled Prompt";
+      const prompt = typeof record.prompt === "string" ? record.prompt : "";
+      return {
+        id,
+        title,
+        prompt,
+        openPreviewOnSuccess: Boolean(record.openPreviewOnSuccess)
+      } satisfies AiPromptTemplate;
+    })
+    .filter((entry): entry is AiPromptTemplate => entry !== null);
+
+  const uniqueIds = new Set<string>();
+  return normalized.filter((entry) => {
+    if (uniqueIds.has(entry.id)) return false;
+    uniqueIds.add(entry.id);
+    return true;
+  });
+}
+
+function loadLegacyStylePresets() {
   try {
-    const raw = localStorage.getItem(CHANGE_STYLE_PRESETS_STORAGE_KEY);
-    if (!raw) return [...DEFAULT_CHANGE_STYLE_PRESETS];
+    const raw = localStorage.getItem(LEGACY_CHANGE_STYLE_PRESETS_STORAGE_KEY);
+    if (!raw) return ["Friendly", "Professional", "Polite", "Concise"];
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [...DEFAULT_CHANGE_STYLE_PRESETS];
+    if (!Array.isArray(parsed)) return ["Friendly", "Professional", "Polite", "Concise"];
     const normalized = parsed
       .map((value) => (typeof value === "string" ? value.trim() : ""))
       .filter(Boolean);
-    return normalized.length > 0 ? Array.from(new Set(normalized)) : [...DEFAULT_CHANGE_STYLE_PRESETS];
+    return normalized.length > 0
+      ? Array.from(new Set(normalized))
+      : ["Friendly", "Professional", "Polite", "Concise"];
   } catch {
-    return [...DEFAULT_CHANGE_STYLE_PRESETS];
+    return ["Friendly", "Professional", "Polite", "Concise"];
   }
 }
 
-function applyPromptVariables(template: string, variables: Record<string, string>) {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => variables[key] ?? `{{${key}}}`);
+function loadAiPromptTemplates(): AiPromptTemplate[] {
+  try {
+    const raw = localStorage.getItem(AI_PROMPT_TEMPLATES_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const normalized = normalizeAiPromptTemplates(parsed);
+      if (normalized.length > 0) {
+        return normalized;
+      }
+    }
+  } catch {
+    // Fall through to legacy migration/defaults.
+  }
+
+  let legacyPrompts: Record<string, string> = {};
+  try {
+    const raw = localStorage.getItem(LEGACY_AI_PROMPTS_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        legacyPrompts = parsed as Record<string, string>;
+      }
+    }
+  } catch {
+    legacyPrompts = {};
+  }
+
+  const legacyMarkdownPrompt =
+    legacyPrompts.markdownConversion ||
+    localStorage.getItem(LEGACY_MARKDOWN_PROMPT_STORAGE_KEY) ||
+    DEFAULT_AI_PROMPT_TEMPLATES[0].prompt;
+  const legacyTranslateLanguage =
+    localStorage.getItem(LEGACY_TRANSLATE_LANGUAGE_STORAGE_KEY)?.trim() || "English";
+  const legacyStylePromptsBase =
+    legacyPrompts.changeStyle ||
+    `Rewrite the document in a {{style}} style.
+Preserve the meaning, facts, and overall structure.
+Improve wording and tone to match the requested style without adding commentary.
+Return only the rewritten document.`;
+  const legacyTranslatePromptBase =
+    legacyPrompts.translate ||
+    `Translate the document into {{language}}.
+Preserve the meaning, intent, and structure as naturally as possible.
+Keep Markdown formatting where it already exists or where it clearly improves readability.
+Return only the translated document.`;
+  const styleTemplates = loadLegacyStylePresets().map((style) => ({
+    id: `change-style-${style.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    title: `Change Style: ${style}`,
+    prompt: buildLegacyStylePrompt(legacyStylePromptsBase, style)
+  }));
+
+  return [
+    {
+      ...DEFAULT_AI_PROMPT_TEMPLATES[0],
+      prompt: legacyMarkdownPrompt
+    },
+    {
+      ...DEFAULT_AI_PROMPT_TEMPLATES[1],
+      prompt:
+        legacyPrompts.proofreadSpelling ||
+        DEFAULT_AI_PROMPT_TEMPLATES[1].prompt
+    },
+    {
+      ...DEFAULT_AI_PROMPT_TEMPLATES[2],
+      prompt: legacyPrompts.summarize || DEFAULT_AI_PROMPT_TEMPLATES[2].prompt
+    },
+    {
+      id: `translate-${legacyTranslateLanguage.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      title: `Translate to ${legacyTranslateLanguage}`,
+      prompt: buildLegacyTranslatePrompt(legacyTranslatePromptBase, legacyTranslateLanguage)
+    },
+    ...styleTemplates,
+    {
+      ...DEFAULT_AI_PROMPT_TEMPLATES[8],
+      prompt: legacyPrompts.rewrite || DEFAULT_AI_PROMPT_TEMPLATES[8].prompt
+    }
+  ];
 }
 
 const graphemeSegmenter =
