@@ -1443,11 +1443,16 @@ export default function App() {
 
   const handleExportDatabase = useCallback(async () => {
     setDbExportStatus(null);
-    const destinationPath = await save({
+    const selectedPath = await save({
       defaultPath: buildDatabaseExportFilename(),
       filters: [{ name: "SQLite Database", extensions: ["db", "sqlite"] }]
     });
-    if (!destinationPath) return;
+    if (!selectedPath) return;
+
+    const destinationPath =
+      selectedPath.endsWith(".db") || selectedPath.endsWith(".sqlite")
+        ? selectedPath
+        : `${selectedPath}.db`;
 
     setDbExporting(true);
     let snapshotPath: string | null = null;
