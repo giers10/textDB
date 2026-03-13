@@ -1172,7 +1172,6 @@ export default function App() {
       }
     },
     [
-      aiPrompts,
       body,
       draftBaseVersionId,
       hasText,
