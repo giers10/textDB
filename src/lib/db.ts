@@ -434,3 +434,9 @@ export async function deleteTextVersion(promptId: string, versionId: string) {
     [nextId, promptId]
   );
 }
+
+export async function exportDatabaseSnapshot(destinationPath: string) {
+  const db = await getDb();
+  const escapedPath = destinationPath.replace(/'/g, "''");
+  await db.execute(`VACUUM INTO '${escapedPath}'`);
+}
