@@ -359,6 +359,10 @@ Return only the translated document.`;
   ];
 }
 
+function getAiPromptTemplateLabel(template: AiPromptTemplate) {
+  return template.title.trim() || "Untitled Prompt";
+}
+
 const graphemeSegmenter =
   typeof Intl !== "undefined" && "Segmenter" in Intl
     ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
@@ -483,15 +487,12 @@ export default function App() {
   const [ollamaModel, setOllamaModel] = useState(() => {
     return localStorage.getItem("textdb.ollamaModel") || "";
   });
-  const [aiPrompts, setAiPrompts] = useState<AiPrompts>(() => loadAiPrompts());
-  const [expandedPromptKey, setExpandedPromptKey] = useState<AiPromptKey | null>(
-    "markdownConversion"
+  const [aiPromptTemplates, setAiPromptTemplates] = useState<AiPromptTemplate[]>(
+    () => loadAiPromptTemplates()
   );
-  const [translateLanguage, setTranslateLanguage] = useState(() => {
-    return localStorage.getItem(TRANSLATE_LANGUAGE_STORAGE_KEY) || DEFAULT_TRANSLATE_LANGUAGE;
-  });
-  const [changeStylePresets, setChangeStylePresets] = useState(() => loadChangeStylePresets());
-  const [newStylePreset, setNewStylePreset] = useState("");
+  const [expandedPromptId, setExpandedPromptId] = useState<string | null>(
+    () => loadAiPromptTemplates()[0]?.id ?? null
+  );
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [ollamaLoading, setOllamaLoading] = useState(false);
   const [ollamaError, setOllamaError] = useState<string | null>(null);
@@ -555,19 +556,11 @@ export default function App() {
   }, [ollamaModel]);
 
   useEffect(() => {
-    localStorage.setItem(AI_PROMPTS_STORAGE_KEY, JSON.stringify(aiPrompts));
-  }, [aiPrompts]);
-
-  useEffect(() => {
-    localStorage.setItem(TRANSLATE_LANGUAGE_STORAGE_KEY, translateLanguage);
-  }, [translateLanguage]);
-
-  useEffect(() => {
     localStorage.setItem(
-      CHANGE_STYLE_PRESETS_STORAGE_KEY,
-      JSON.stringify(changeStylePresets)
+      AI_PROMPT_TEMPLATES_STORAGE_KEY,
+      JSON.stringify(aiPromptTemplates)
     );
-  }, [changeStylePresets]);
+  }, [aiPromptTemplates]);
 
   useEffect(() => {
     localStorage.setItem(
