@@ -1441,6 +1441,72 @@ export default function App() {
     await createTextFromFile(path);
   }, [createTextFromFile]);
 
+  const handleExportDatabase = useCallback(async () => {
+    setDbExportStatus(null);
+    const destinationPath = await save({
+      defaultPath: buildDatabaseExportFilename(),
+      filters: [{ name: "SQLite Database", extensions: ["db", "sqlite"] }]
+    });
+    if (!destinationPath) return;
+
+    setDbExporting(true);
+    let snapshotPath: string | null = null;
+
+    try {
+      if (selectedTextId && isDirty && !isViewingHistory) {
+        await upsertDraft(selectedTextId, body, draftBaseVersionId);
+        setHasDraft(true);
+        setLastPersistedBody(body);
+        setSelectedHistoryId(`draft:${selectedTextId}`);
+        if (historyOpen) {
+          await refreshVersions();
+        }
+      }
+
+      const baseDir = await appDataDir();
+      const sourcePath = await join(baseDir, "text.db");
+      snapshotPath = await join(baseDir, `textdb-export-${Date.now()}.db`);
+
+      if (destinationPath === sourcePath) {
+        throw new Error("Choose a different destination than the live database file.");
+      }
+
+      if (await exists(snapshotPath)) {
+        await remove(snapshotPath);
+      }
+      if (await exists(destinationPath)) {
+        await remove(destinationPath);
+      }
+
+      await exportDatabaseSnapshot(snapshotPath);
+      await copyFile(snapshotPath, destinationPath);
+
+      setDbExportStatus({
+        tone: "success",
+        message: `Database exported to ${destinationPath}`
+      });
+    } catch (error) {
+      console.error("Failed to export database", error);
+      setDbExportStatus({
+        tone: "error",
+        message: error instanceof Error ? error.message : "Failed to export database."
+      });
+    } finally {
+      if (snapshotPath && (await exists(snapshotPath).catch(() => false))) {
+        await remove(snapshotPath).catch(() => {});
+      }
+      setDbExporting(false);
+    }
+  }, [
+    body,
+    draftBaseVersionId,
+    historyOpen,
+    isDirty,
+    isViewingHistory,
+    refreshVersions,
+    selectedTextId
+  ]);
+
   const handleSaveVersion = useCallback(async () => {
     if (!selectedTextId || !canSave) return;
     const normalizedTitle = title.trim() || DEFAULT_TITLE;
