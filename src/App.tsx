@@ -3008,13 +3008,43 @@ export default function App() {
         </div>
       ) : null}
 
-      {customPromptOpen ? (
+      {pendingAiScopeChoice ? (
         <div className="modal">
-          <div className="modal__overlay" onClick={() => setCustomPromptOpen(false)} />
+          <div className="modal__overlay" onClick={() => setPendingAiScopeChoice(null)} />
+          <div className="modal__card" role="dialog" aria-modal="true">
+            <div className="modal__title">AI Edit Scope</div>
+            <div className="modal__message">
+              A text selection is active. Do you want to edit the whole text or just the selected part?
+            </div>
+            <div className="modal__selection-preview">
+              {pendingAiScopeChoice.selection.text}
+            </div>
+            <div className="modal__actions">
+              <button className="button" onClick={() => setPendingAiScopeChoice(null)}>
+                Cancel
+              </button>
+              <button className="button" onClick={() => handleChooseAiScope("document")}>
+                Whole Text
+              </button>
+              <button
+                className="button button--primary"
+                onClick={() => handleChooseAiScope("selection")}
+              >
+                Selected Part
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {customPromptState ? (
+        <div className="modal">
+          <div className="modal__overlay" onClick={() => setCustomPromptState(null)} />
           <div className="modal__card modal__card--wide" role="dialog" aria-modal="true">
             <div className="modal__title">Custom Prompt</div>
             <div className="modal__message">
-              Tell the AI what it should do with the current text.
+              Tell the AI what it should do with the current{" "}
+              {customPromptState.scope === "selection" ? "selection" : "text"}.
             </div>
             <textarea
               className="modal__textarea"
@@ -3028,7 +3058,7 @@ export default function App() {
                   });
                 } else if (event.key === "Escape") {
                   event.preventDefault();
-                  setCustomPromptOpen(false);
+                  setCustomPromptState(null);
                 }
               }}
               placeholder="Example: Turn this into a short release note with bullet points."
@@ -3036,7 +3066,7 @@ export default function App() {
             />
             <div className="modal__hint">Press Cmd/Ctrl+Enter to run.</div>
             <div className="modal__actions">
-              <button className="button" onClick={() => setCustomPromptOpen(false)}>
+              <button className="button" onClick={() => setCustomPromptState(null)}>
                 Cancel
               </button>
               <button
