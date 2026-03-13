@@ -925,6 +925,63 @@ export default function App() {
     });
   }, []);
 
+  const dispatchAiAction = useCallback(
+    (template: AiPromptTemplate | null, isCustomPrompt: boolean) => {
+      const selection = getCurrentAiSelection();
+      if (selection) {
+        setPendingAiScopeChoice({
+          template,
+          selection,
+          isCustomPrompt
+        });
+        return;
+      }
+
+      if (isCustomPrompt) {
+        setCustomPromptText("");
+        setCustomPromptState({
+          scope: "document",
+          selection: null
+        });
+        return;
+      }
+
+      if (!template) return;
+      runAiAction({ template }).catch((error) => {
+        console.error("Failed to run AI tool", error);
+      });
+    },
+    [getCurrentAiSelection, runAiAction]
+  );
+
+  const handleChooseAiScope = useCallback(
+    (scope: AiEditScope) => {
+      const pending = pendingAiScopeChoice;
+      if (!pending) return;
+      setPendingAiScopeChoice(null);
+
+      if (pending.isCustomPrompt) {
+        setCustomPromptText("");
+        setCustomPromptState({
+          scope,
+          selection: scope === "selection" ? pending.selection : null
+        });
+        return;
+      }
+
+      if (!pending.template) return;
+
+      runAiAction({
+        template: pending.template,
+        scope,
+        selection: scope === "selection" ? pending.selection : null
+      }).catch((error) => {
+        console.error("Failed to run AI tool", error);
+      });
+    },
+    [pendingAiScopeChoice, runAiAction]
+  );
+
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
     if (isDirty) return "unsaved";
