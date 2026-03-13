@@ -2437,7 +2437,11 @@ export default function App() {
                       className="button"
                       type="button"
                       onClick={isConverting ? handleCancelConversion : handleOpenAiToolsMenu}
-                      disabled={isConverting ? false : !ollamaModel || isViewingHistory || !hasText}
+                      disabled={
+                        isConverting
+                          ? false
+                          : !ollamaModel || isViewingHistory || !hasText || aiPromptTemplates.length === 0
+                      }
                     >
                       {isConverting ? "Cancel AI Edit" : "AI Tools"}
                     </button>
