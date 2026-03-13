@@ -2660,17 +2660,99 @@ export default function App() {
                   <div className="settings-panel__hint">{ollamaError}</div>
                 ) : null}
               </div>
-              <div className="settings-panel__section">
-                <label className="settings-panel__label" htmlFor="ollama-prompt">
-                  Prompt
-                </label>
-                <textarea
-                  id="ollama-prompt"
-                  className="settings-panel__textarea"
-                  value={ollamaPrompt}
-                  onChange={(event) => setOllamaPrompt(event.target.value)}
-                  rows={6}
-                />
+              <div className="settings-panel__section-title">Prompts</div>
+              <div className="settings-panel__section settings-panel__section--flush">
+                {AI_PROMPT_DEFINITIONS.map((definition) => {
+                  const isOpen = expandedPromptKey === definition.key;
+                  return (
+                    <div
+                      key={definition.key}
+                      className={`prompt-accordion${isOpen ? " is-open" : ""}`}
+                    >
+                      <button
+                        className="prompt-accordion__toggle"
+                        type="button"
+                        onClick={() =>
+                          setExpandedPromptKey((current) =>
+                            current === definition.key ? null : definition.key
+                          )
+                        }
+                      >
+                        <span>{definition.title}</span>
+                        <span className="prompt-accordion__indicator" aria-hidden="true">
+                          {isOpen ? "−" : "+"}
+                        </span>
+                      </button>
+                      {isOpen ? (
+                        <div className="prompt-accordion__body">
+                          {definition.hint ? (
+                            <div className="settings-panel__hint">{definition.hint}</div>
+                          ) : null}
+                          <textarea
+                            className="settings-panel__textarea"
+                            value={aiPrompts[definition.key]}
+                            onChange={(event) =>
+                              handleUpdateAiPrompt(definition.key, event.target.value)
+                            }
+                            rows={7}
+                          />
+                          {definition.key === "translate" ? (
+                            <div className="settings-panel__subsection">
+                              <label
+                                className="settings-panel__label"
+                                htmlFor="translate-language"
+                              >
+                                Target language
+                              </label>
+                              <input
+                                id="translate-language"
+                                className="settings-panel__input"
+                                type="text"
+                                value={translateLanguage}
+                                onChange={(event) => setTranslateLanguage(event.target.value)}
+                                placeholder={DEFAULT_TRANSLATE_LANGUAGE}
+                              />
+                            </div>
+                          ) : null}
+                          {definition.key === "changeStyle" ? (
+                            <div className="settings-panel__subsection">
+                              <div className="settings-panel__label">Style presets</div>
+                              <div className="style-preset-list">
+                                {changeStylePresets.map((preset) => (
+                                  <span key={preset} className="style-preset-chip">
+                                    {preset}
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="style-preset-editor">
+                                <input
+                                  className="settings-panel__input"
+                                  type="text"
+                                  value={newStylePreset}
+                                  onChange={(event) => setNewStylePreset(event.target.value)}
+                                  onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                      event.preventDefault();
+                                      handleAddStylePreset();
+                                    }
+                                  }}
+                                  placeholder="Add style preset"
+                                />
+                                <button
+                                  className="button"
+                                  type="button"
+                                  onClick={handleAddStylePreset}
+                                >
+                                  Add
+                                </button>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
               <div className="settings-panel__section-title">Export</div>
               <div className="settings-panel__section">
