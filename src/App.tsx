@@ -2397,10 +2397,10 @@ export default function App() {
                     <button
                       className="button"
                       type="button"
-                      onClick={isConverting ? handleCancelConversion : handleConvertToMarkdown}
+                      onClick={isConverting ? handleCancelConversion : handleOpenAiToolsMenu}
                       disabled={isConverting ? false : !ollamaModel || isViewingHistory || !hasText}
                     >
-                      {isConverting ? "Cancel Conversion" : "Convert to Markdown"}
+                      {isConverting ? "Cancel AI Edit" : "AI Tools"}
                     </button>
                     {hasText ? (
                       <button className="button" onClick={handleExportText}>
