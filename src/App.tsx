@@ -561,6 +561,21 @@ export default function App() {
   }, [aiPromptTemplates]);
 
   useEffect(() => {
+    if (aiPromptTemplates.length === 0) {
+      if (expandedPromptId !== null) {
+        setExpandedPromptId(null);
+      }
+      return;
+    }
+    if (
+      expandedPromptId === null ||
+      !aiPromptTemplates.some((template) => template.id === expandedPromptId)
+    ) {
+      setExpandedPromptId(aiPromptTemplates[0].id);
+    }
+  }, [aiPromptTemplates, expandedPromptId]);
+
+  useEffect(() => {
     localStorage.setItem(
       "textdb.expandedFolders",
       JSON.stringify(Array.from(expandedFolders))
