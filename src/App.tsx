@@ -879,6 +879,11 @@ export default function App() {
     setExpandedPromptId((current) => (current === templateId ? null : current));
   }, []);
 
+  const openCustomPromptLightbox = useCallback(() => {
+    setCustomPromptText("");
+    setCustomPromptOpen(true);
+  }, []);
+
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
     if (isDirty) return "unsaved";
