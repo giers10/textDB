@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { writeText as writeClipboardText } from "@tauri-apps/plugin-clipboard-manager";
-import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { copyFile, exists, readTextFile, remove, writeTextFile } from "@tauri-apps/plugin-fs";
 import { Menu } from "@tauri-apps/api/menu";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { appDataDir } from "@tauri-apps/api/path";
+import { appDataDir, join } from "@tauri-apps/api/path";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { Compartment, EditorState, Transaction } from "@codemirror/state";
@@ -48,6 +48,7 @@ import {
   deleteText,
   deleteTextVersion,
   discardDraft,
+  exportDatabaseSnapshot,
   getDraft,
   getLatestManualVersion,
   getText,
@@ -70,6 +71,11 @@ const formatDate = (timestamp: number) => {
   return new Date(timestamp).toLocaleString();
 };
 
+const buildDatabaseExportFilename = () => {
+  const timestamp = new Date().toISOString().replace(/\.\d{3}Z$/, "Z").replace(/:/g, "-");
+  return `textdb-backup-${timestamp}.db`;
+};
+
 type HistorySnapshot = {
   body: string;
   lastPersistedBody: string;
@@ -85,6 +91,11 @@ type ConfirmState = {
   message: string;
   actionLabel?: string;
   onConfirm: () => Promise<void> | void;
+};
+
+type DbExportStatus = {
+  tone: "success" | "error";
+  message: string;
 };
 
 type HistoryEntry = {
