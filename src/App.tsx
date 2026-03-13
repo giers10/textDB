@@ -917,14 +917,6 @@ export default function App() {
     };
   }, []);
 
-  const openCustomPromptLightbox = useCallback(() => {
-    setCustomPromptText("");
-    setCustomPromptState({
-      scope: "document",
-      selection: null
-    });
-  }, []);
-
   const dispatchAiAction = useCallback(
     (template: AiPromptTemplate | null, isCustomPrompt: boolean) => {
       const selection = getCurrentAiSelection();
