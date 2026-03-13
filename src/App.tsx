@@ -134,8 +134,29 @@ type AiPromptTemplate = {
   openPreviewOnSuccess?: boolean;
 };
 
+type AiEditScope = "document" | "selection";
+
+type AiSelection = {
+  from: number;
+  to: number;
+  text: string;
+};
+
 type AiActionRequest = {
   template: AiPromptTemplate;
+  scope?: AiEditScope;
+  selection?: AiSelection | null;
+};
+
+type PendingAiScopeChoice = {
+  template: AiPromptTemplate | null;
+  selection: AiSelection;
+  isCustomPrompt: boolean;
+};
+
+type CustomPromptState = {
+  scope: AiEditScope;
+  selection: AiSelection | null;
 };
 
 const DEFAULT_TITLE = "Untitled Text";
