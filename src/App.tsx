@@ -2269,117 +2269,144 @@ export default function App() {
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <div className="settings-panel__section-title">Interface</div>
-            <div className="settings-panel__section">
-              <label className="settings-panel__label" htmlFor="theme-select">
-                Theme
-              </label>
-              <select
-                id="theme-select"
-                className="settings-panel__select"
-                value={theme}
-                onChange={(event) =>
-                  setTheme(event.target.value as "dark" | "light")
-                }
-              >
-                <option value="dark">Dark</option>
-                <option value="light">Bright</option>
-              </select>
-            </div>
-            <div className="settings-panel__section settings-panel__section--row">
-              <label className="settings-panel__label" htmlFor="line-numbers-toggle">
-                Line numbers
-              </label>
-              <input
-                id="line-numbers-toggle"
-                type="checkbox"
-                checked={showLineNumbers}
-                onChange={(event) => setShowLineNumbers(event.target.checked)}
-              />
-            </div>
-            <div className="settings-panel__section settings-panel__section--row">
-              <label className="settings-panel__label" htmlFor="split-view-toggle">
-                Split view
-              </label>
-              <input
-                id="split-view-toggle"
-                type="checkbox"
-                checked={splitView}
-                onChange={(event) => setSplitView(event.target.checked)}
-              />
-            </div>
-            <div className="settings-panel__section">
-              <label className="settings-panel__label" htmlFor="text-size">
-                Text size
-              </label>
-              <div className="settings-panel__slider-row">
-                <input
-                  id="text-size"
-                  className="settings-panel__range"
-                  type="range"
-                  min={12}
-                  max={18}
-                  step={1}
-                  value={textSize}
-                  onChange={(event) => setTextSize(Number(event.target.value))}
-                />
-                <div className="settings-panel__value">{textSize}px</div>
+            <div className="settings-panel__body">
+              <div className="settings-panel__section-title">Interface</div>
+              <div className="settings-panel__section">
+                <label className="settings-panel__label" htmlFor="theme-select">
+                  Theme
+                </label>
+                <select
+                  id="theme-select"
+                  className="settings-panel__select"
+                  value={theme}
+                  onChange={(event) =>
+                    setTheme(event.target.value as "dark" | "light")
+                  }
+                >
+                  <option value="dark">Dark</option>
+                  <option value="light">Bright</option>
+                </select>
               </div>
-            </div>
-            <div className="settings-panel__section-title">Ollama</div>
-            <div className="settings-panel__section">
-              <label className="settings-panel__label" htmlFor="ollama-url">
-                URL
-              </label>
-              <input
-                id="ollama-url"
-                className="settings-panel__input"
-                type="text"
-                value={ollamaUrl}
-                onChange={(event) => setOllamaUrl(event.target.value)}
-                placeholder={DEFAULT_OLLAMA_URL}
-              />
-            </div>
-            <div className="settings-panel__section">
-              <label className="settings-panel__label" htmlFor="ollama-model">
-                Model
-              </label>
-              <select
-                id="ollama-model"
-                className="settings-panel__select"
-                value={ollamaModel}
-                onChange={(event) => setOllamaModel(event.target.value)}
-                disabled={ollamaLoading}
-              >
-                {ollamaModels.length > 0 ? (
-                  ollamaModels.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
+              <div className="settings-panel__section settings-panel__section--row">
+                <label className="settings-panel__label" htmlFor="line-numbers-toggle">
+                  Line numbers
+                </label>
+                <input
+                  id="line-numbers-toggle"
+                  type="checkbox"
+                  checked={showLineNumbers}
+                  onChange={(event) => setShowLineNumbers(event.target.checked)}
+                />
+              </div>
+              <div className="settings-panel__section settings-panel__section--row">
+                <label className="settings-panel__label" htmlFor="split-view-toggle">
+                  Split view
+                </label>
+                <input
+                  id="split-view-toggle"
+                  type="checkbox"
+                  checked={splitView}
+                  onChange={(event) => setSplitView(event.target.checked)}
+                />
+              </div>
+              <div className="settings-panel__section">
+                <label className="settings-panel__label" htmlFor="text-size">
+                  Text size
+                </label>
+                <div className="settings-panel__slider-row">
+                  <input
+                    id="text-size"
+                    className="settings-panel__range"
+                    type="range"
+                    min={12}
+                    max={18}
+                    step={1}
+                    value={textSize}
+                    onChange={(event) => setTextSize(Number(event.target.value))}
+                  />
+                  <div className="settings-panel__value">{textSize}px</div>
+                </div>
+              </div>
+              <div className="settings-panel__section-title">Ollama</div>
+              <div className="settings-panel__section">
+                <label className="settings-panel__label" htmlFor="ollama-url">
+                  URL
+                </label>
+                <input
+                  id="ollama-url"
+                  className="settings-panel__input"
+                  type="text"
+                  value={ollamaUrl}
+                  onChange={(event) => setOllamaUrl(event.target.value)}
+                  placeholder={DEFAULT_OLLAMA_URL}
+                />
+              </div>
+              <div className="settings-panel__section">
+                <label className="settings-panel__label" htmlFor="ollama-model">
+                  Model
+                </label>
+                <select
+                  id="ollama-model"
+                  className="settings-panel__select"
+                  value={ollamaModel}
+                  onChange={(event) => setOllamaModel(event.target.value)}
+                  disabled={ollamaLoading}
+                >
+                  {ollamaModels.length > 0 ? (
+                    ollamaModels.map((model) => (
+                      <option key={model} value={model}>
+                        {model}
+                      </option>
+                    ))
+                  ) : ollamaModel ? (
+                    <option value={ollamaModel}>{ollamaModel}</option>
+                  ) : (
+                    <option value="">
+                      {ollamaLoading ? "Loading models…" : "No models found"}
                     </option>
-                  ))
-                ) : ollamaModel ? (
-                  <option value={ollamaModel}>{ollamaModel}</option>
-                ) : (
-                  <option value="">
-                    {ollamaLoading ? "Loading models…" : "No models found"}
-                  </option>
-                )}
-              </select>
-              {ollamaError ? (
-                <div className="settings-panel__hint">{ollamaError}</div>
-              ) : null}
-            </div>
-            <div className="settings-panel__section">
-              <label className="settings-panel__label" htmlFor="ollama-prompt">
-                Prompt
-              </label>
-              <textarea
-                id="ollama-prompt"
-                className="settings-panel__textarea"
-                value={ollamaPrompt}
-                onChange={(event) => setOllamaPrompt(event.target.value)}
-                rows={6}
-              />
+                  )}
+                </select>
+                {ollamaError ? (
+                  <div className="settings-panel__hint">{ollamaError}</div>
+                ) : null}
+              </div>
+              <div className="settings-panel__section">
+                <label className="settings-panel__label" htmlFor="ollama-prompt">
+                  Prompt
+                </label>
+                <textarea
+                  id="ollama-prompt"
+                  className="settings-panel__textarea"
+                  value={ollamaPrompt}
+                  onChange={(event) => setOllamaPrompt(event.target.value)}
+                  rows={6}
+                />
+              </div>
+              <div className="settings-panel__section-title">Export</div>
+              <div className="settings-panel__section">
+                <button
+                  className="button"
+                  onClick={() => {
+                    handleExportDatabase().catch((error) => {
+                      console.error("Failed to export database", error);
+                    });
+                  }}
+                  disabled={dbExporting}
+                  type="button"
+                >
+                  {dbExporting ? "Exporting…" : "Export DB"}
+                </button>
+                <div className="settings-panel__hint">
+                  Save a backup copy of the current SQLite database.
+                </div>
+                {dbExportStatus ? (
+                  <div
+                    className={`settings-panel__status settings-panel__status--${dbExportStatus.tone}`}
+                  >
+                    {dbExportStatus.message}
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
