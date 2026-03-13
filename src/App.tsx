@@ -2701,92 +2701,76 @@ export default function App() {
               </div>
               <div className="settings-panel__section-title">Prompts</div>
               <div className="settings-panel__section settings-panel__section--flush">
-                {AI_PROMPT_DEFINITIONS.map((definition) => {
-                  const isOpen = expandedPromptKey === definition.key;
+                <button
+                  className="button"
+                  type="button"
+                  onClick={handleAddAiPromptTemplate}
+                >
+                  Add Prompt Template
+                </button>
+                {aiPromptTemplates.map((template) => {
+                  const isOpen = expandedPromptId === template.id;
                   return (
                     <div
-                      key={definition.key}
+                      key={template.id}
                       className={`prompt-accordion${isOpen ? " is-open" : ""}`}
                     >
                       <button
                         className="prompt-accordion__toggle"
                         type="button"
                         onClick={() =>
-                          setExpandedPromptKey((current) =>
-                            current === definition.key ? null : definition.key
+                          setExpandedPromptId((current) =>
+                            current === template.id ? null : template.id
                           )
                         }
                       >
-                        <span>{definition.title}</span>
+                        <span>{getAiPromptTemplateLabel(template)}</span>
                         <span className="prompt-accordion__indicator" aria-hidden="true">
                           {isOpen ? "−" : "+"}
                         </span>
                       </button>
                       {isOpen ? (
                         <div className="prompt-accordion__body">
-                          {definition.hint ? (
-                            <div className="settings-panel__hint">{definition.hint}</div>
-                          ) : null}
+                          <label className="settings-panel__label">
+                            Title
+                          </label>
+                          <input
+                            className="settings-panel__input"
+                            type="text"
+                            value={template.title}
+                            onChange={(event) =>
+                              handleUpdateAiPromptTemplate(
+                                template.id,
+                                "title",
+                                event.target.value
+                              )
+                            }
+                            placeholder="Prompt title"
+                          />
+                          <label className="settings-panel__label">
+                            Prompt
+                          </label>
                           <textarea
                             className="settings-panel__textarea"
-                            value={aiPrompts[definition.key]}
+                            value={template.prompt}
                             onChange={(event) =>
-                              handleUpdateAiPrompt(definition.key, event.target.value)
+                              handleUpdateAiPromptTemplate(
+                                template.id,
+                                "prompt",
+                                event.target.value
+                              )
                             }
                             rows={7}
                           />
-                          {definition.key === "translate" ? (
-                            <div className="settings-panel__subsection">
-                              <label
-                                className="settings-panel__label"
-                                htmlFor="translate-language"
-                              >
-                                Target language
-                              </label>
-                              <input
-                                id="translate-language"
-                                className="settings-panel__input"
-                                type="text"
-                                value={translateLanguage}
-                                onChange={(event) => setTranslateLanguage(event.target.value)}
-                                placeholder={DEFAULT_TRANSLATE_LANGUAGE}
-                              />
-                            </div>
-                          ) : null}
-                          {definition.key === "changeStyle" ? (
-                            <div className="settings-panel__subsection">
-                              <div className="settings-panel__label">Style presets</div>
-                              <div className="style-preset-list">
-                                {changeStylePresets.map((preset) => (
-                                  <span key={preset} className="style-preset-chip">
-                                    {preset}
-                                  </span>
-                                ))}
-                              </div>
-                              <div className="style-preset-editor">
-                                <input
-                                  className="settings-panel__input"
-                                  type="text"
-                                  value={newStylePreset}
-                                  onChange={(event) => setNewStylePreset(event.target.value)}
-                                  onKeyDown={(event) => {
-                                    if (event.key === "Enter") {
-                                      event.preventDefault();
-                                      handleAddStylePreset();
-                                    }
-                                  }}
-                                  placeholder="Add style preset"
-                                />
-                                <button
-                                  className="button"
-                                  type="button"
-                                  onClick={handleAddStylePreset}
-                                >
-                                  Add
-                                </button>
-                              </div>
-                            </div>
-                          ) : null}
+                          <div className="prompt-accordion__actions">
+                            <button
+                              className="button button--danger"
+                              type="button"
+                              onClick={() => handleDeleteAiPromptTemplate(template.id)}
+                            >
+                              Remove Template
+                            </button>
+                          </div>
                         </div>
                       ) : null}
                     </div>
