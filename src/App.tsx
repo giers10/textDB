@@ -1050,6 +1050,41 @@ export default function App() {
     setHistoryItems(combined);
   }, []);
 
+  const persistCurrentTextVersion = useCallback(
+    async (promptId: string, nextTitle: string, nextBody: string) => {
+      const normalizedTitle = nextTitle.trim() || DEFAULT_TITLE;
+      if (
+        selectedTextIdRef.current === promptId &&
+        normalizedTitle !== nextTitle
+      ) {
+        setTitle(normalizedTitle);
+      }
+
+      const result = await saveManualVersion(promptId, normalizedTitle, nextBody);
+
+      if (selectedTextIdRef.current === promptId) {
+        setLastPersistedBody(nextBody);
+        setLastPersistedTitle(normalizedTitle);
+        setHasDraft(false);
+        setRestoredDraft(false);
+        setLatestManualVersionId(result.versionId);
+        setDraftBaseVersionId(result.versionId);
+        setSelectedHistoryId(result.versionId);
+      }
+
+      await refreshTexts();
+      if (historyOpenRef.current && selectedTextIdRef.current === promptId) {
+        await refreshVersions(promptId);
+      }
+
+      return {
+        versionId: result.versionId,
+        normalizedTitle
+      };
+    },
+    [refreshTexts, refreshVersions]
+  );
+
   const runAiAction = useCallback(
     async ({ template }: AiActionRequest) => {
       if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
@@ -1078,8 +1113,19 @@ export default function App() {
       const controller = new AbortController();
       const sourceTextId = selectedTextId;
       const sourceBody = body;
-      const sourceTitle = title.trim() || DEFAULT_TITLE;
-      const sourceDraftBaseVersionId = draftBaseVersionId;
+      let sourceTitle = title.trim() || DEFAULT_TITLE;
+      let sourceDraftBaseVersionId = draftBaseVersionId;
+
+      if (canSave) {
+        const persisted = await persistCurrentTextVersion(
+          sourceTextId,
+          title,
+          sourceBody
+        );
+        sourceTitle = persisted.normalizedTitle;
+        sourceDraftBaseVersionId = persisted.versionId;
+      }
+
       const fullPrompt = `${prompt}\n\nDocument:\n${sourceBody}`;
 
       setConversionJob({
@@ -1173,12 +1219,14 @@ export default function App() {
     },
     [
       body,
+      canSave,
       draftBaseVersionId,
       hasText,
       isConverting,
       isViewingHistory,
       normalizedOllamaUrl,
       ollamaModel,
+      persistCurrentTextVersion,
       refreshTexts,
       refreshVersions,
       selectedTextId,
