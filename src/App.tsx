@@ -107,9 +107,12 @@ type HistoryEntry = {
 };
 
 type ConversionJob = {
+  actionLabel: string;
+  openPreviewOnSuccess: boolean;
   sourceTextId: string;
   sourceTitle: string;
   sourceBody: string;
+  sourceDraftBaseVersionId: string | null;
   controller: AbortController;
 };
 
@@ -382,9 +385,15 @@ export default function App() {
   const [ollamaModel, setOllamaModel] = useState(() => {
     return localStorage.getItem("textdb.ollamaModel") || "";
   });
-  const [ollamaPrompt, setOllamaPrompt] = useState(() => {
-    return localStorage.getItem("textdb.ollamaPrompt") || DEFAULT_OLLAMA_PROMPT;
+  const [aiPrompts, setAiPrompts] = useState<AiPrompts>(() => loadAiPrompts());
+  const [expandedPromptKey, setExpandedPromptKey] = useState<AiPromptKey | null>(
+    "markdownConversion"
+  );
+  const [translateLanguage, setTranslateLanguage] = useState(() => {
+    return localStorage.getItem(TRANSLATE_LANGUAGE_STORAGE_KEY) || DEFAULT_TRANSLATE_LANGUAGE;
   });
+  const [changeStylePresets, setChangeStylePresets] = useState(() => loadChangeStylePresets());
+  const [newStylePreset, setNewStylePreset] = useState("");
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [ollamaLoading, setOllamaLoading] = useState(false);
   const [ollamaError, setOllamaError] = useState<string | null>(null);
@@ -448,8 +457,19 @@ export default function App() {
   }, [ollamaModel]);
 
   useEffect(() => {
-    localStorage.setItem("textdb.ollamaPrompt", ollamaPrompt);
-  }, [ollamaPrompt]);
+    localStorage.setItem(AI_PROMPTS_STORAGE_KEY, JSON.stringify(aiPrompts));
+  }, [aiPrompts]);
+
+  useEffect(() => {
+    localStorage.setItem(TRANSLATE_LANGUAGE_STORAGE_KEY, translateLanguage);
+  }, [translateLanguage]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      CHANGE_STYLE_PRESETS_STORAGE_KEY,
+      JSON.stringify(changeStylePresets)
+    );
+  }, [changeStylePresets]);
 
   useEffect(() => {
     localStorage.setItem(
