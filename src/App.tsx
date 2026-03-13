@@ -268,6 +268,7 @@ export default function App() {
   const historySnapshotRef = useRef<HistorySnapshot | null>(null);
   const recentOpenRef = useRef(new Map<string, number>());
   const searchRestoreSplitRef = useRef<boolean | null>(null);
+  const pendingEditorFocusRef = useRef(false);
   const ignoreTextBlurRef = useRef(false);
   const ignoreFolderBlurRef = useRef(false);
 
@@ -663,6 +664,17 @@ export default function App() {
     view.requestMeasure();
   }, [markdownPreview, splitView, textSize, sidebarCollapsed, historyOpen]);
 
+  useEffect(() => {
+    if (!pendingEditorFocusRef.current) return;
+    if (!selectedTextId || !editorReady || isViewingHistory) return;
+    if (markdownPreview && !splitView) return;
+
+    pendingEditorFocusRef.current = false;
+    window.requestAnimationFrame(() => {
+      editorViewRef.current?.focus();
+    });
+  }, [editorReady, isViewingHistory, markdownPreview, selectedTextId, splitView]);
+
 
   const refreshTexts = useCallback(async () => {
     setLoadingTexts(true);
@@ -989,6 +1001,8 @@ export default function App() {
   const handleNewText = useCallback(async () => {
     const { textId } = await createText(DEFAULT_TITLE, "", null);
     await refreshTexts();
+    pendingEditorFocusRef.current = true;
+    setMarkdownPreview(false);
     setSelectedTextId(textId);
   }, [refreshTexts]);
 
