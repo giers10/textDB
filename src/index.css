@@ -1075,7 +1075,7 @@ body:not([data-theme="light"]) .markdown-preview {
 .settings-panel {
   position: relative;
   z-index: 1;
-  width: min(420px, calc(100vw - 32px));
+  width: min(560px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
   padding: 20px;
   border-radius: 16px;
@@ -1112,6 +1112,10 @@ body:not([data-theme="light"]) .markdown-preview {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.settings-panel__section--flush {
+  gap: 10px;
 }
 
 .settings-panel__section-title {
@@ -1174,6 +1178,12 @@ body:not([data-theme="light"]) .markdown-preview {
   color: var(--muted);
 }
 
+.settings-panel__subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .settings-panel__status {
   font-size: 0.8rem;
   word-break: break-word;
@@ -1185,6 +1195,66 @@ body:not([data-theme="light"]) .markdown-preview {
 
 .settings-panel__status--error {
   color: #d36b6b;
+}
+
+.prompt-accordion {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-input);
+  overflow: hidden;
+}
+
+.prompt-accordion__toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prompt-accordion__indicator {
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.prompt-accordion__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.style-preset-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.style-preset-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--bg-contrast);
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.style-preset-editor {
+  display: flex;
+  gap: 10px;
+}
+
+.style-preset-editor .settings-panel__input {
+  flex: 1;
 }
 
 body[data-theme="light"] .editor__textarea-wrap:focus-within {
