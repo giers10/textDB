@@ -739,6 +739,25 @@ export default function App() {
     conversionJob?.controller.abort();
   }, [conversionJob]);
 
+  const handleUpdateAiPrompt = useCallback((key: AiPromptKey, value: string) => {
+    setAiPrompts((current) => ({
+      ...current,
+      [key]: value
+    }));
+  }, []);
+
+  const handleAddStylePreset = useCallback(() => {
+    const normalized = newStylePreset.trim();
+    if (!normalized) return;
+    setChangeStylePresets((current) => {
+      if (current.some((preset) => preset.toLowerCase() === normalized.toLowerCase())) {
+        return current;
+      }
+      return [...current, normalized];
+    });
+    setNewStylePreset("");
+  }, [newStylePreset]);
+
   const statusKey = useMemo(() => {
     if (isViewingHistory) return "history";
     if (isDirty) return "unsaved";
@@ -763,9 +782,9 @@ export default function App() {
   const conversionLabel = useMemo(() => {
     if (!conversionJob) return null;
     if (conversionJob.sourceTextId === selectedTextId) {
-      return "Converting Markdown";
+      return conversionJob.actionLabel;
     }
-    return `Converting ${conversionJob.sourceTitle}`;
+    return `${conversionJob.actionLabel}: ${conversionJob.sourceTitle}`;
   }, [conversionJob, selectedTextId]);
 
   const historyIconSrc = theme === "light" ? historyIconBright : historyIcon;
