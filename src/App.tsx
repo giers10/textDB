@@ -1134,7 +1134,7 @@ export default function App() {
   );
 
   const runAiAction = useCallback(
-    async ({ template }: AiActionRequest) => {
+    async ({ template, scope = "document", selection = null }: AiActionRequest) => {
       if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
       if (!ollamaModel) {
         setConfirmState({
@@ -1146,7 +1146,11 @@ export default function App() {
         return;
       }
 
-      const actionLabel = getAiPromptTemplateLabel(template);
+      const resolvedScope = scope === "selection" && selection ? "selection" : "document";
+      const actionLabel =
+        resolvedScope === "selection"
+          ? `${getAiPromptTemplateLabel(template)} (Selection)`
+          : getAiPromptTemplateLabel(template);
       const prompt = template.prompt.trim();
       if (!prompt) {
         setConfirmState({
@@ -1174,7 +1178,10 @@ export default function App() {
         sourceDraftBaseVersionId = persisted.versionId;
       }
 
-      const fullPrompt = `${prompt}\n\nDocument:\n${sourceBody}`;
+      const sourceInput =
+        resolvedScope === "selection" && selection ? selection.text : sourceBody;
+      const sourceLabel = resolvedScope === "selection" ? "Selected text" : "Document";
+      const fullPrompt = `${prompt}\n\n${sourceLabel}:\n${sourceInput}`;
 
       setConversionJob({
         actionLabel,
@@ -1209,6 +1216,11 @@ export default function App() {
           return;
         }
 
+        const nextBody =
+          resolvedScope === "selection" && selection
+            ? `${sourceBody.slice(0, selection.from)}${resultText}${sourceBody.slice(selection.to)}`
+            : resultText;
+
         const hasLiveEditsOnSource =
           selectedTextIdRef.current === sourceTextId &&
           viewingVersionRef.current === null &&
@@ -1224,15 +1236,15 @@ export default function App() {
           return;
         }
 
-        await upsertDraft(sourceTextId, resultText, sourceDraftBaseVersionId);
+        await upsertDraft(sourceTextId, nextBody, sourceDraftBaseVersionId);
 
         const canApplyToVisibleEditor =
           selectedTextIdRef.current === sourceTextId &&
           viewingVersionRef.current === null;
 
         if (canApplyToVisibleEditor) {
-          setBody(resultText);
-          setLastPersistedBody(resultText);
+          setBody(nextBody);
+          setLastPersistedBody(nextBody);
           setHasDraft(true);
           setRestoredDraft(false);
           setDraftBaseVersionId(sourceDraftBaseVersionId);
