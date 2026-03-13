@@ -871,14 +871,10 @@ export default function App() {
   }, []);
 
   const handleDeleteAiPromptTemplate = useCallback((templateId: string) => {
-    setAiPromptTemplates((current) => {
-      const next = current.filter((template) => template.id !== templateId);
-      setExpandedPromptId((expandedId) => {
-        if (expandedId !== templateId) return expandedId;
-        return next[0]?.id ?? null;
-      });
-      return next;
-    });
+    setAiPromptTemplates((current) =>
+      current.filter((template) => template.id !== templateId)
+    );
+    setExpandedPromptId((current) => (current === templateId ? null : current));
   }, []);
 
   const statusKey = useMemo(() => {
