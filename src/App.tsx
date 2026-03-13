@@ -1212,7 +1212,8 @@ export default function App() {
           throw new Error(`Ollama responded with ${response.status}`);
         }
         const data = await response.json();
-        const resultText = typeof data?.response === "string" ? data.response.trim() : "";
+        const resultText =
+          typeof data?.response === "string" ? sanitizeAiResponse(data.response) : "";
         if (!resultText) {
           throw new Error("Ollama returned an empty response.");
         }
