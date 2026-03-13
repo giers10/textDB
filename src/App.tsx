@@ -439,6 +439,8 @@ export default function App() {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [customPromptOpen, setCustomPromptOpen] = useState(false);
+  const [customPromptText, setCustomPromptText] = useState("");
   const [dbExporting, setDbExporting] = useState(false);
   const [dbExportStatus, setDbExportStatus] = useState<DbExportStatus | null>(null);
   const [markdownPreview, setMarkdownPreview] = useState(false);
