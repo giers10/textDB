@@ -1241,6 +1241,22 @@ export default function App() {
     ]
   );
 
+  const handleRunCustomPrompt = useCallback(async () => {
+    const prompt = customPromptText.trim();
+    if (!prompt) return;
+
+    setCustomPromptOpen(false);
+    setCustomPromptText("");
+
+    await runAiAction({
+      template: {
+        id: "custom-prompt",
+        title: "Custom Prompt",
+        prompt
+      }
+    });
+  }, [customPromptText, runAiAction]);
+
   const handleOpenAiToolsMenu = useCallback(async () => {
     if (!selectedTextId || !hasText || isViewingHistory || isConverting) return;
     if (aiPromptTemplates.length === 0) {
@@ -1254,14 +1270,22 @@ export default function App() {
     }
 
     const menu = await Menu.new({
-      items: aiPromptTemplates.map((template) => ({
-        text: getAiPromptTemplateLabel(template),
-        action: () => {
-          runAiAction({ template }).catch((error) => {
-            console.error("Failed to run AI tool", error);
-          });
-        }
-      }))
+      items: [
+        {
+          text: "Custom prompt...",
+          action: () => {
+            openCustomPromptLightbox();
+          }
+        },
+        ...aiPromptTemplates.map((template) => ({
+          text: getAiPromptTemplateLabel(template),
+          action: () => {
+            runAiAction({ template }).catch((error) => {
+              console.error("Failed to run AI tool", error);
+            });
+          }
+        }))
+      ]
     });
     await menu.popup(undefined, getCurrentWindow());
   }, [
@@ -1269,6 +1293,7 @@ export default function App() {
     hasText,
     isConverting,
     isViewingHistory,
+    openCustomPromptLightbox,
     runAiAction,
     selectedTextId
   ]);
